@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arohak Employee Skill &amp; Details Portal</title>
+    <meta name="description" content="Arohak Employee Portal — manage profiles, directories, attendance, schedules, certifications, and yearly skill targets.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <!-- Background glow design elements -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div id="root">
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!-- ║           1. LOGIN SCREEN            ║ -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="login-screen" class="screen active">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo-container">
+                        <img src="/logo.png" alt="Arohak Logo" class="login-logo-img">
+                    </div>
+                    <h1>Skills &amp; Details Portal</h1>
+                    <p>Enter your credentials to access the employee portal.</p>
+                </div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="login-username">Employee ID / Username</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-round input-icon">person</span>
+                            <input type="text" id="login-username" placeholder="e.g. AT0123 or admin" required autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <span class="material-icons-round input-icon">lock</span>
+                            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <span>Sign In</span>
+                        <span class="material-icons-round">arrow_forward</span>
+                    </button>
+                </form>
+                <div class="login-footer">
+                    <p>Default password for seeded profiles is <code>Password@123</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ╔══════════════════════════════════════╗ -->
+        <!-- ║         2. MAIN APPLICATION          ║ -->
+        <!-- ╚══════════════════════════════════════╝ -->
+        <div id="app-screen" class="screen">
+            <!-- Header bar -->
+            <header class="app-header">
+                <div class="header-brand">
+                    <img src="/logo.png" alt="Arohak Logo" class="brand-logo-img">
+                    <span id="role-badge" class="badge">Employee</span>
+                </div>
+                <div class="header-actions">
+                    <div class="user-info">
+                        <span class="material-icons-round avatar-icon">account_circle</span>
+                        <div class="user-text">
+                            <span id="user-display-name" class="user-name">Loading...</span>
+                            <span id="user-display-id" class="user-id">AT0000</span>
+                        </div>
+                    </div>
+                    <button id="header-settings-btn" class="btn btn-secondary btn-icon-only" title="Settings">
+                        <span class="material-icons-round">settings</span>
+                    </button>
+                    <button id="logout-btn" class="btn btn-danger">
+                        <span class="material-icons-round">logout</span>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="app-body">
+                <!-- Navigation Sidebar -->
+                <aside class="sidebar">
+                    <nav class="sidebar-nav">
+                        <!-- Employee Navigation -->
+                        <div id="nav-employee-group" class="nav-group">
+                            <div class="nav-section-label">My Portal</div>
+                            <button class="nav-link active" data-tab="emp-profile">
+                                <span class="material-icons-round">person_outline</span>
+                                <span>My Profile</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-directory">
+                                <span class="material-icons-round">people_outline</span>
+                                <span>Employee Directory</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-attendance">
+                                <span class="material-icons-round">event_available</span>
+                                <span>Attendance</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-schedule">
+                                <span class="material-icons-round">calendar_month</span>
+                                <span>Weekly Schedule</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-certskills">
+                                <span class="material-icons-round">workspace_premium</span>
+                                <span>Certifications &amp; Skills</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-skilltargets">
+                                <span class="material-icons-round">flag</span>
+                                <span>Yearly Skill Targets</span>
+                            </button>
+                        </div>
+                        <!-- Admin Navigation -->
+                        <div id="nav-admin-group" class="nav-group hidden">
+                            <div class="nav-section-label">Admin Panel</div>
+                            <button class="nav-link active" data-tab="admin-dashboard">
+                                <span class="material-icons-round">dashboard</span>
+                                <span>Dashboard</span>
+                            </button>
+                            <button class="nav-link" data-tab="admin-directory">
+                                <span class="material-icons-round">badge</span>
+                                <span>Employees Directory</span>
+                            </button>
+                            <button class="nav-link" data-tab="admin-attendance">
+                                <span class="material-icons-round">event_note</span>
+                                <span>Attendance Tracker</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-assets">
+                                <span class="material-icons-round">devices</span>
+                                <span>Office Assets</span>
+                            </button>
+                             <!-- Admin weekly schedule removed -->
+                        </div>
+                    </nav>
+                    <div class="sidebar-bottom">
+                        <button class="nav-link" data-tab="settings" id="nav-settings-btn">
+                            <span class="material-icons-round">settings</span>
+                            <span>Settings</span>
+                        </button>
+                    </div>
+                </aside>
+
+                <!-- Page Content Area -->
+                <main class="main-content">
+                    <!-- Global Notification Banner -->
+                    <div id="update-alert-banner" class="alert-banner hidden">
+                        <div class="alert-content">
+                            <span class="material-icons-round alert-icon">warning_amber</span>
+                            <div class="alert-text">
+                                <h3>Profile Update Required!</h3>
+                                <p>It has been more than 6 months since your last profile update. Please review and update your skills/details below.</p>
+                            </div>
+                        </div>
+                        <button id="alert-banner-dismiss" class="btn btn-clear-icon"><span class="material-icons-round">close</span></button>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 1: Employee Profile (existing)        -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-profile" class="tab-pane active">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>My Profile Details</h1>
+                                <p>View and keep your skills, certifications, and experience up to date.</p>
+                            </div>
+                            <div class="page-header-badges">
+                                <div class="score-circle-container">
+                                    <svg class="score-ring" width="100" height="100">
+                                        <defs>
+                                            <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#1d4ed8" />
+                                                <stop offset="100%" stop-color="#38bdf8" />
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="score-ring-bg" stroke="var(--border-color)" stroke-width="12" fill="transparent" r="40" cx="50" cy="50"/>
+                                        <circle id="score-ring-fill" stroke="var(--accent-secondary)" stroke-width="12" fill="transparent" r="40" cx="50" cy="50"
+                                                stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round"/>
+                                    </svg>
+                                    <div class="score-circle-text">
+                                        <span id="prof-score-value">100%</span>
+                                        <span class="score-circle-label">Score</span>
+                                    </div>
+                                </div>
+                                <span id="profile-status-badge" class="badge hidden"></span>
+                                <div class="last-updated-badge">
+                                    <span>Last Updated: </span><strong id="profile-last-updated">-</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="profile-form">
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">badge</span>
+                                    <h2>Basic &amp; Project Information</h2>
+                                </div>
+                                <div class="panel-body grid-2">
+                                    <div class="form-group">
+                                        <label for="prof-emp-id">Employee ID</label>
+                                        <input type="text" id="prof-emp-id" readonly disabled class="input-disabled">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-name">Full Name</label>
+                                        <input type="text" id="prof-name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-email">Email Address</label>
+                                        <input type="email" id="prof-email" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-project-name">Assigned Project Name</label>
+                                        <input type="text" id="prof-project-name" placeholder="e.g. ASPAC EDI">
+                                    </div>
+                                    <div class="form-group col-span-2">
+                                        <label for="prof-project-date">Date of Project Assignment</label>
+                                        <input type="date" id="prof-project-date">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">star_rate</span>
+                                    <h2>Technical Skillsets &amp; Ratings</h2>
+                                </div>
+                                <div class="panel-body">
+                                    <p class="panel-helper-text">List your top 3 skills and rate your expertise level from 1 to 5.</p>
+                                    <div class="skills-grid">
+                                        <div class="skill-row">
+                                            <div class="form-group">
+                                                <label for="prof-skill1">Primary Skill (Top 1)</label>
+                                                <input type="text" id="prof-skill1" placeholder="e.g. React, Java" required>
+                                            </div>
+                                            <div class="form-group rating-form-group">
+                                                <label>Primary Rating</label>
+                                                <div class="rating-input-container">
+                                                    <input type="range" id="prof-rating1" min="0" max="5" step="0.5" value="0">
+                                                    <span class="rating-badge" id="rating1-val">0.0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="skill-row">
+                                            <div class="form-group">
+                                                <label for="prof-skill2">Secondary Skill (Top 2)</label>
+                                                <input type="text" id="prof-skill2" placeholder="e.g. Node.js, Sqlite">
+                                            </div>
+                                            <div class="form-group rating-form-group">
+                                                <label>Secondary Rating</label>
+                                                <div class="rating-input-container">
+                                                    <input type="range" id="prof-rating2" min="0" max="5" step="0.5" value="0">
+                                                    <span class="rating-badge" id="rating2-val">0.0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="skill-row">
+                                            <div class="form-group">
+                                                <label for="prof-skill3">Third Skillset (Top 3)</label>
+                                                <input type="text" id="prof-skill3" placeholder="e.g. AWS, Kubernetes">
+                                            </div>
+                                            <div class="form-group rating-form-group">
+                                                <label>Third Rating</label>
+                                                <div class="rating-input-container">
+                                                    <input type="range" id="prof-rating3" min="0" max="5" step="0.5" value="0">
+                                                    <span class="rating-badge" id="rating3-val">0.0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="skill-row highlight-row">
+                                            <div class="skill-info-text">
+                                                <h3>Work Experience Skill Rating</h3>
+                                                <p>Rate the alignment of your work experience with your practical execution skillset.</p>
+                                            </div>
+                                            <div class="form-group rating-form-group">
+                                                <label>Work Exp Skills Rating</label>
+                                                <div class="rating-input-container">
+                                                    <input type="range" id="prof-work-rating" min="0" max="5" step="0.5" value="0">
+                                                    <span class="rating-badge rating-badge-primary" id="work-rating-val">0.0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="overall-rating-card">
+                                        <div class="rating-info">
+                                            <h3>Overall Profile Rating</h3>
+                                            <p>Average of all your skill and experience ratings.</p>
+                                        </div>
+                                        <div class="rating-value-glow">
+                                            <span id="prof-overall-rating">0.0</span>
+                                            <span class="out-of">/ 5.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">history_edu</span>
+                                    <h2>Experience Summary</h2>
+                                </div>
+                                <div class="panel-body grid-2">
+                                    <div class="form-group">
+                                        <label for="prof-prev-exp">Previous Experience (Before Arohak)</label>
+                                        <textarea id="prof-prev-exp" rows="3" placeholder="e.g. 5 Years in EDI Domain as Senior Engineer"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-arohak-exp">Arohak Experience</label>
+                                        <textarea id="prof-arohak-exp" rows="3" placeholder="e.g. 2 Years, 4 Months working on Kenvue project"></textarea>
+                                    </div>
+                                    <div class="form-group col-span-2">
+                                        <label>Total Overall Experience</label>
+                                        <div id="prof-total-exp-display" class="total-exp-badge">
+                                            <span class="material-icons-round">work_history</span>
+                                            <span id="prof-total-exp-text">Will be calculated automatically</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">workspace_premium</span>
+                                    <h2>Certifications</h2>
+                                </div>
+                                <div class="panel-body grid-2">
+                                    <div class="form-group col-span-2">
+                                        <label for="prof-certifications">Certifications</label>
+                                        <input type="text" id="prof-certifications" placeholder="e.g. ITIL V4, AWS Solutions Architect, Azure Fundamentals">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-cert-start">Certificate Start Date (or Year of Completion)</label>
+                                        <input type="text" id="prof-cert-start" placeholder="e.g. 2024 or 2024-05-12">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-cert-end">Certificate End Date</label>
+                                        <input type="date" id="prof-cert-end">
+                                    </div>
+                                    <div class="form-group col-span-2">
+                                        <label for="prof-cert-expiry">Certificate Expiry Date</label>
+                                        <input type="date" id="prof-cert-expiry">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-actions-bar">
+                                <button type="button" id="reset-profile-btn" class="btn btn-secondary">Discard Changes</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="material-icons-round">save</span>
+                                    <span>Save Profile &amp; Update Score</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Resume Management Panel -->
+                        <div class="panel" style="margin-top: 24px;">
+                            <div class="panel-header">
+                                <span class="material-icons-round">description</span>
+                                <h2>Resume Management</h2>
+                            </div>
+                            <div class="panel-body">
+                                <p class="panel-helper-text">Download your automatically generated profile resume, or upload your own custom resume file (PDF, DOC, DOCX).</p>
+                                <div class="resume-actions-container" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 12px;">
+                                    
+                                    <!-- Option 1: Automatic Generated Resume -->
+                                    <button type="button" id="view-generated-resume-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="material-icons-round">visibility</span>
+                                        <span>View Generated Resume</span>
+                                    </button>
+                                    
+                                    <!-- Option 2: Upload User's Self Resume -->
+                                    <input type="file" id="upload-self-resume-input" accept=".pdf,.doc,.docx" style="display: none;">
+                                    <button type="button" id="upload-self-resume-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="material-icons-round">upload_file</span>
+                                        <span>Upload Resume</span>
+                                    </button>
+                                    
+                                    <!-- Uploaded file display & delete option -->
+                                    <div id="uploaded-resume-status" class="hidden" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                                        <span class="material-icons-round" style="color: var(--accent-secondary);">check_circle</span>
+                                        <span id="uploaded-resume-name" style="font-size: 0.9rem; font-weight: 500;">resume.pdf</span>
+                                        
+                                        <button type="button" id="download-uploaded-resume-btn" class="btn btn-secondary btn-icon-only" title="Download Uploaded Resume" style="padding: 4px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">download</span>
+                                        </button>
+                                        
+                                        <button type="button" id="delete-uploaded-resume-btn" class="btn btn-danger btn-icon-only" title="Delete Resume" style="padding: 4px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">delete</span>
+                                        </button>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 2: Employee Directory (existing)      -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-directory" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Employee Directory</h1>
+                                <p>Search and view profiles of other team members at Arohak.</p>
+                            </div>
+                        </div>
+                        <div class="search-panel">
+                            <div class="search-grid">
+                                <div class="form-group">
+                                    <label for="search-skill">Search Technical Skill</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">search</span>
+                                        <input type="text" id="search-skill" placeholder="e.g. React, Java, AWS">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="search-project">Project Name</label>
+                                    <input type="text" id="search-project" placeholder="e.g. Kenvue">
+                                </div>
+                                <div class="form-group">
+                                    <label for="search-exp">Experience Keyword</label>
+                                    <input type="text" id="search-exp" placeholder="e.g. Senior, Years">
+                                </div>
+                                <div class="form-group search-btn-group">
+                                    <button id="clear-search-btn" class="btn btn-secondary">Clear</button>
+                                    <button id="apply-search-btn" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="results-meta">
+                            <span>Showing <strong id="directory-count">0</strong> employees</span>
+                        </div>
+                        <div id="directory-grid" class="directory-grid"></div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 3: Employee Attendance (new)          -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-attendance" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>My Attendance</h1>
+                                <p>View your attendance records. Status codes: <strong class="status-p-inline">P</strong> Present &nbsp;|&nbsp; <strong class="status-wfh-inline">WFH</strong> WFH &nbsp;|&nbsp; <strong class="status-ab-inline">Ab</strong> Absent &nbsp;|&nbsp; <strong class="status-h-inline">H</strong> Holiday &nbsp;|&nbsp; <strong class="status-l-inline">L</strong> Leave</p>
+                            </div>
+                        </div>
+                        <!-- Attendance Summary Cards -->
+                        <div class="stats-row" id="attendance-summary-row">
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper green"><span class="material-icons-round">check_circle</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Present Days</span>
+                                    <span id="att-stat-p" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper amber"><span class="material-icons-round">home</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">WFH Days</span>
+                                    <span id="att-stat-wfh" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper red"><span class="material-icons-round">cancel</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Absent Days</span>
+                                    <span id="att-stat-ab" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper blue"><span class="material-icons-round">wb_sunny</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Holidays / Off</span>
+                                    <span id="att-stat-h" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper orange"><span class="material-icons-round">beach_access</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Leave Days</span>
+                                    <span id="att-stat-l" class="stat-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Attendance calendar grid -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="material-icons-round">event_available</span>
+                                <h2>Last 30 Working Days</h2>
+                            </div>
+                            <div class="panel-body">
+                                <div id="att-calendar-grid" class="att-calendar-grid">
+                                    <div class="text-center" style="padding:40px;"><div class="spinner"></div>Loading attendance…</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Timesheet Panel -->
+                        <div class="panel" style="margin-top: 24px;">
+                            <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-icons-round">schedule</span>
+                                    <h2>Weekly Timesheet</h2>
+                                </div>
+                                <div class="timesheet-week-selector" style="display: flex; align-items: center; gap: 12px;">
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-prev-week-btn" title="Previous Week">
+                                        <span class="material-icons-round">chevron_left</span>
+                                    </button>
+                                    <span id="ts-week-label" style="font-weight: 500; font-size: 0.95rem; min-width: 180px; text-align: center;">This week</span>
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-next-week-btn" title="Next Week">
+                                        <span class="material-icons-round">chevron_right</span>
+                                    </button>
+                                    <input type="date" id="ts-week-picker" style="display: none;">
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-calendar-btn" title="Select Date">
+                                        <span class="material-icons-round">calendar_today</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="table-responsive" style="overflow-x: auto;">
+                                    <table class="admin-table" id="timesheet-table" style="min-width: 800px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 25%;">Client & Project</th>
+                                                <th style="width: 25%;">Task</th>
+                                                <th id="ts-header-mon" style="text-align: center; width: 8%;">Mon</th>
+                                                <th id="ts-header-tue" style="text-align: center; width: 8%;">Tue</th>
+                                                <th id="ts-header-wed" style="text-align: center; width: 8%;">Wed</th>
+                                                <th id="ts-header-thu" style="text-align: center; width: 8%;">Thu</th>
+                                                <th id="ts-header-fri" style="text-align: center; width: 8%;">Fri</th>
+                                                <th style="text-align: center; width: 10%;">Total</th>
+                                                <th style="width: 8%; text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="timesheet-tbody">
+                                            <!-- Dynamically populated -->
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="font-weight: 600; background: var(--bg-tertiary);">
+                                                <td colspan="2" style="text-align: right; padding-right: 20px;">Total</td>
+                                                <td id="ts-total-mon" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-tue" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-wed" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-thu" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-fri" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-weekly" style="text-align: center; color: var(--primary-color);">0:00</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px;">
+                                    <div style="display: flex; gap: 12px;">
+                                        <button class="btn btn-secondary" id="ts-add-row-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">add</span> Add Row
+                                        </button>
+                                        <button class="btn btn-secondary" id="ts-copy-prev-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">content_copy</span> Copy Previous Week
+                                        </button>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
+                                        <span id="ts-limit-status" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Total: 0:00 / 45:00</span>
+                                        <button class="btn btn-primary" id="ts-save-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 20px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">save</span> Save Timesheet
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            #timesheet-table input[type="text"] {
+                                border: none !important;
+                                background: transparent !important;
+                                color: var(--text-primary) !important;
+                                font-size: 0.875rem;
+                                border-radius: 4px;
+                                transition: all 0.15s ease;
+                            }
+                            #timesheet-table input[type="text"]:hover:not(:disabled) {
+                                background: rgba(255, 255, 255, 0.05) !important;
+                            }
+                            #timesheet-table input[type="text"]:focus {
+                                outline: none !important;
+                                background: var(--bg-secondary) !important;
+                                box-shadow: 0 0 0 1px var(--primary-color) !important;
+                            }
+                            #timesheet-table input[type="text"]:disabled {
+                                color: var(--text-muted) !important;
+                                opacity: 0.5;
+                                cursor: not-allowed !important;
+                                background: transparent !important;
+                            }
+                            .ts-delete-row-btn {
+                                padding: 6px !important;
+                                min-width: unset !important;
+                                border-radius: 4px;
+                                transition: all 0.15s ease;
+                            }
+                            .ts-delete-row-btn:hover {
+                                background: rgba(239, 68, 68, 0.1) !important;
+                                border-color: var(--danger) !important;
+                            }
+                        </style>
+
+
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 4: Weekly Schedule (new, employee)    -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-schedule" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>My Weekly Schedule</h1>
+                                <p>Your work schedule Monday – Friday based on your project assignment.</p>
+                            </div>
+                            <button id="edit-schedule-btn" class="btn btn-primary" style="display:none;">
+                                <span class="material-icons-round">edit_calendar</span>
+                                <span>Edit Schedule</span>
+                            </button>
+                        </div>
+                        <div id="emp-schedule-content">
+                            <div class="text-center" style="padding:60px;"><div class="spinner"></div>Loading schedule…</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 5: Certifications & Skills (new)      -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-certskills" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Certifications &amp; Skills</h1>
+                                <p>A summary of your current skills, ratings, and active certifications.</p>
+                            </div>
+                        </div>
+                        <div id="certskills-content">
+                            <div class="text-center" style="padding:60px;"><div class="spinner"></div>Loading…</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 6: Yearly Skill Targets (new)         -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-skilltargets" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Yearly Skill Targets</h1>
+                                <p>Set and track the skills you plan to learn or achieve by year-end.</p>
+                            </div>
+                            <button id="add-target-btn" class="btn btn-primary">
+                                <span class="material-icons-round">add</span>
+                                <span>Add Skill Target</span>
+                            </button>
+                        </div>
+                        <!-- Year filter -->
+                        <div class="search-panel" style="margin-bottom:24px;">
+                            <div class="search-grid" style="grid-template-columns: 180px 1fr;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="targets-year-filter">Filter by Year</label>
+                                    <select id="targets-year-filter">
+                                        <option value="">All Years</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="skill-targets-grid" class="skill-targets-grid">
+                            <div class="text-center" style="padding:60px;"><div class="spinner"></div>Loading targets…</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- ADMIN TAB: Dashboard (existing)           -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-dashboard" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Admin Dashboard</h1>
+                                <p>Arohak overview statistics, skill insights, and activity logs.</p>
+                            </div>
+                        </div>
+                        <div class="stats-row">
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper purple"><span class="material-icons-round">groups</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Total Employees</span>
+                                    <span id="stat-total-emp" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper green"><span class="material-icons-round">trending_up</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Average Rating</span>
+                                    <span id="stat-avg-rating" class="stat-number">0.0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper orange"><span class="material-icons-round">mail_outline</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Pending Updates</span>
+                                    <span id="stat-pending-updates" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper blue"><span class="material-icons-round">verified</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Certified Talents</span>
+                                    <span id="stat-certified-count" class="stat-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-grid">
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">pie_chart</span>
+                                    <h2>Top Technology Skillsets</h2>
+                                </div>
+                                <div class="panel-body">
+                                    <div id="skills-chart-list" class="skills-chart-list"></div>
+                                </div>
+                            </div>
+                            <div class="panel">
+                                <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="material-icons-round">notification_important</span>
+                                        <h2>Employees Requiring Update Check</h2>
+                                    </div>
+                                    <button id="admin-send-reminders-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.85rem;">
+                                        <span class="material-icons-round" style="font-size: 1.10rem;">mail</span> Send Reminders
+                                    </button>
+                                </div>
+                                <div class="panel-body">
+                                    <div id="pending-update-list" class="pending-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- ADMIN TAB: Directory (existing)           -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-directory" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Admin Directory</h1>
+                                <p>Manage, search, and extract reports for all employee details.</p>
+                            </div>
+                             <div style="display: flex; gap: 10px;">
+                                <button id="admin-export-btn" class="btn btn-secondary">
+                                    <span class="material-icons-round">download</span>
+                                    <span>Export Report (CSV)</span>
+                                </button>
+                                <button id="admin-export-excel-btn" class="btn btn-primary">
+                                    <span class="material-icons-round">download_for_offline</span>
+                                    <span>Export Report (Excel)</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-panel">
+                            <div class="search-grid admin-search-grid">
+                                <div class="form-group">
+                                    <label for="admin-search-skill">Filter by Skill</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">psychology</span>
+                                        <input type="text" id="admin-search-skill" placeholder="e.g. Java, Python">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="admin-search-project">Filter by Project</label>
+                                    <input type="text" id="admin-search-project" placeholder="e.g. Secure Transfers">
+                                </div>
+                                <div class="form-group">
+                                    <label for="admin-search-exp">Filter by Experience</label>
+                                    <input type="text" id="admin-search-exp" placeholder="e.g. 5 Years">
+                                </div>
+                                <div class="form-group">
+                                    <label for="admin-search-rating">Min Overall Rating</label>
+                                    <select id="admin-search-rating">
+                                        <option value="">Any Rating</option>
+                                        <option value="4.5">4.5+ Stars</option>
+                                        <option value="4.0">4.0+ Stars</option>
+                                        <option value="3.5">3.5+ Stars</option>
+                                        <option value="3.0">3.0+ Stars</option>
+                                    </select>
+                                </div>
+                                <div class="form-group search-btn-group">
+                                    <button id="admin-clear-btn" class="btn btn-secondary">Clear</button>
+                                    <button id="admin-apply-btn" class="btn btn-primary">Apply Filters</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel table-panel">
+                            <div class="table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Emp ID</th>
+                                            <th>Employee Name</th>
+                                            <th>Top Skills</th>
+                                            <th>Overall Rating</th>
+                                            <th>Arohak Exp</th>
+                                            <th>Project Name</th>
+                                            <th>Score</th>
+                                            <th>Last Updated</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-employees-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- ADMIN TAB: Attendance Tracker (new)       -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-attendance" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Attendance Tracker</h1>
+                                <p>View and manage attendance records for all employees.</p>
+                            </div>
+                        </div>
+                        <!-- Today's Overview Table -->
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="material-icons-round">today</span>
+                                <h2>Today's Attendance Overview</h2>
+                                <button id="admin-att-refresh-btn" class="btn btn-secondary btn-icon-only" title="Refresh" style="margin-left:auto;">
+                                    <span class="material-icons-round">refresh</span>
+                                </button>
+                            </div>
+                            <div class="panel-body" style="padding:0;">
+                                <div class="table-container">
+                                    <table class="admin-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Emp ID</th>
+                                                <th>Name</th>
+                                                <th>Project</th>
+                                                <th>Shift</th>
+                                                <th>Today's Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-att-today-tbody">
+                                            <tr><td colspan="6" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Employee detail attendance view (shown after clicking View) -->
+                        <div id="admin-att-detail-panel" class="panel hidden">
+                            <div class="panel-header">
+                                <span class="material-icons-round">person_search</span>
+                                <h2 id="admin-att-detail-title">Employee Attendance</h2>
+                                <button id="admin-att-close-detail" class="btn btn-secondary btn-icon-only" style="margin-left:auto;">
+                                    <span class="material-icons-round">close</span>
+                                </button>
+                            </div>
+                            <div class="panel-body">
+                                <div id="admin-att-detail-calendar" class="att-calendar-grid"></div>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- ADMIN TAB: Weekly Schedules (new)         -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-schedule" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Employee Weekly Schedules</h1>
+                                <p>View and update Mon–Fri work schedules for all employees.</p>
+                            </div>
+                        </div>
+                        <div class="search-panel" style="margin-bottom:24px;">
+                            <div class="search-grid" style="grid-template-columns:1fr 1fr 120px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="sched-search-name">Search Employee Name / ID</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">search</span>
+                                        <input type="text" id="sched-search-name" placeholder="Name or Emp ID…">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="sched-search-project">Filter by Project</label>
+                                    <input type="text" id="sched-search-project" placeholder="e.g. Kenvue">
+                                </div>
+                                <div class="form-group search-btn-group" style="margin-bottom:0;align-self:flex-end;">
+                                    <button id="sched-search-btn" class="btn btn-primary" style="width:100%;">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="admin-schedules-grid" class="schedules-grid">
+                            <div class="text-center" style="padding:60px;"><div class="spinner"></div>Loading schedules…</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 7: Office Assets (new)                -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-assets" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Office Assets Tracking</h1>
+                                <p>View and manage office laptops and headsets allocation for all employees.</p>
+                            </div>
+                            <div class="last-updated-badge">
+                                <span>Total Employees: </span><strong id="assets-count">78</strong>
+                            </div>
+                        </div>
+
+                        <!-- Filters panel -->
+                        <div class="search-panel" style="margin-bottom:24px;">
+                            <div class="search-grid" style="grid-template-columns: 1fr 180px 180px 120px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="assets-search-name">Search Employee Name / ID</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">search</span>
+                                        <input type="text" id="assets-search-name" placeholder="Name or Emp ID…">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="assets-filter-laptop">Laptop Status</label>
+                                    <select id="assets-filter-laptop">
+                                        <option value="">All Laptops</option>
+                                        <option value="Yes">Yes (Taken)</option>
+                                        <option value="No">No (Not Taken)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="assets-filter-headset">Headset Status</label>
+                                    <select id="assets-filter-headset">
+                                        <option value="">All Headsets</option>
+                                        <option value="Yes">Yes (Taken)</option>
+                                        <option value="No">No (Not Taken)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group search-btn-group" style="margin-bottom:0;align-self:flex-end;">
+                                    <button id="assets-clear-btn" class="btn btn-secondary" style="width:100%;">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table panel -->
+                        <div class="panel table-panel">
+                            <div class="table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Emp ID</th>
+                                            <th>Employee Name</th>
+                                            <th>Office Laptop</th>
+                                            <th>Headset from Office</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assets-employees-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB: Settings (existing)                  -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-settings" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Portal Settings</h1>
+                                <p>Manage your notifications, change password, and theme preferences.</p>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="material-icons-round">notifications</span>
+                                <h2>Notification Preferences</h2>
+                            </div>
+                            <div class="panel-body">
+                                <div class="form-group" style="display:flex;align-items:center;gap:12px;margin-bottom:0;">
+                                    <label class="switch" style="margin-bottom:0;">
+                                        <input type="checkbox" id="settings-notifications-toggle" checked>
+                                        <span class="slider round"></span>
+                                    </label>
+                                    <div>
+                                        <h3 style="font-size:0.95rem;margin-bottom:2px;color:var(--text-primary);">Enable Email Notifications</h3>
+                                        <p style="font-size:0.8rem;color:var(--text-muted);">Receive automatic alerts on portal updates and 6-month profile refresh periods.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="material-icons-round">palette</span>
+                                <h2>Visual Theme Preferences</h2>
+                            </div>
+                            <div class="panel-body">
+                                <p class="panel-helper-text">Select your preferred color theme for the portal.</p>
+                                <div style="display:flex;gap:16px;">
+                                    <button class="btn btn-secondary theme-option-btn" id="theme-btn-dark">
+                                        <span class="material-icons-round">dark_mode</span>
+                                        <span>Dark Mode</span>
+                                    </button>
+                                    <button class="btn btn-secondary theme-option-btn" id="theme-btn-light">
+                                        <span class="material-icons-round">light_mode</span>
+                                        <span>Light Mode</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <div class="panel-header">
+                                <span class="material-icons-round">lock</span>
+                                <h2>Account Security</h2>
+                            </div>
+                            <form id="settings-change-password-form">
+                                <div class="panel-body grid-2" style="padding-bottom:0;">
+                                    <div class="form-group">
+                                        <label for="settings-pass-current">Current Password</label>
+                                        <input type="password" id="settings-pass-current" required autocomplete="current-password">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-pass-new">New Password</label>
+                                        <input type="password" id="settings-pass-new" required autocomplete="new-password">
+                                    </div>
+                                    <div class="form-group col-span-2">
+                                        <label for="settings-pass-confirm">Confirm New Password</label>
+                                        <input type="password" id="settings-pass-confirm" required autocomplete="new-password">
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:flex-end;padding:0 24px 24px;">
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="material-icons-round">vpn_key</span>
+                                        <span>Change Password</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Employee Detail Modal                       -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Employee Details</h2>
+                <button class="modal-close"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body" id="modal-body-content"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Add / Edit Skill Target                     -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="skill-target-modal" class="modal">
+        <div class="modal-content" style="max-width:560px;">
+            <div class="modal-header">
+                <h2 id="skill-target-modal-title">Add Skill Target</h2>
+                <button class="modal-close"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="skill-target-form">
+                    <input type="hidden" id="st-edit-id" value="">
+                    <div class="form-group">
+                        <label for="st-skill-name">Skill / Technology Name *</label>
+                        <input type="text" id="st-skill-name" required placeholder="e.g. Kubernetes, Azure DevOps">
+                    </div>
+                    <div class="form-group">
+                        <label for="st-description">Description</label>
+                        <textarea id="st-description" rows="2" placeholder="What do you want to achieve with this skill?"></textarea>
+                    </div>
+                    <div class="grid-2" style="gap:16px;">
+                        <div class="form-group">
+                            <label for="st-level">Target Level</label>
+                            <select id="st-level">
+                                <option value="">Select level…</option>
+                                <option>Beginner</option>
+                                <option>Intermediate</option>
+                                <option>Expert</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="st-status">Status</label>
+                            <select id="st-status">
+                                <option value="Planned">Planned</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="st-completion-date">Target Completion Date</label>
+                        <input type="date" id="st-completion-date">
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+                        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-icons-round">save</span>
+                            <span id="st-submit-label">Save Target</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Admin – Update Single Attendance Record     -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="admin-att-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h2>Update Attendance</h2>
+                <button class="modal-close"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="admin-att-form">
+                    <input type="hidden" id="admin-att-emp-id" value="">
+                    <div class="form-group">
+                        <label for="admin-att-date">Date</label>
+                        <input type="date" id="admin-att-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-att-status">Attendance Status</label>
+                        <select id="admin-att-status" required>
+                            <option value="P">P — Present</option>
+                            <option value="Ab">Ab — Absent</option>
+                            <option value="H">H — Holiday</option>
+                            <option value="L">L — Leave</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-att-notes">Notes (optional)</label>
+                        <input type="text" id="admin-att-notes" placeholder="e.g. Medical leave">
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-icons-round">save</span>
+                            <span>Save Record</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Admin – Edit Employee Schedule              -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="admin-sched-modal" class="modal">
+        <div class="modal-content" style="max-width:520px;">
+            <div class="modal-header">
+                <h2 id="admin-sched-modal-title">Edit Weekly Schedule</h2>
+                <button class="modal-close"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="admin-sched-form">
+                    <input type="hidden" id="admin-sched-emp-id" value="">
+                    <div class="form-group">
+                        <label for="admin-sched-manager">Manager Name</label>
+                        <input type="text" id="admin-sched-manager" placeholder="e.g. Priya Mehta">
+                    </div>
+                    <div class="form-group">
+                        <label>Shift Timings</label>
+                        <div class="shift-hours-container" id="admin-sched-shift-container" style="margin-top:0;">
+                            <div class="shift-hours-label">
+                                <span>Toggle hours to set shift:</span>
+                                <span class="shift-hours-display-text" id="admin-sched-shift-display">Day Shift (9 AM - 6 PM)</span>
+                            </div>
+                            <div class="shift-hours-grid" id="admin-sched-shift-grid">
+                                <!-- Generated dynamically -->
+                            </div>
+                            <input type="hidden" id="admin-sched-shift-hidden" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Working Days</label>
+                        <div class="schedule-day-toggles">
+                            <label class="day-toggle"><input type="checkbox" id="sched-mon" value="monday"> Mon</label>
+                            <label class="day-toggle"><input type="checkbox" id="sched-tue" value="tuesday"> Tue</label>
+                            <label class="day-toggle"><input type="checkbox" id="sched-wed" value="wednesday"> Wed</label>
+                            <label class="day-toggle"><input type="checkbox" id="sched-thu" value="thursday"> Thu</label>
+                            <label class="day-toggle"><input type="checkbox" id="sched-fri" value="friday"> Fri</label>
+                        </div>
+                        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">Checked = Working, Unchecked = Off</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin-sched-notes">Notes</label>
+                        <textarea id="admin-sched-notes" rows="2" placeholder="Any special schedule notes…"></textarea>
+                    </div>
+                    <div style="display:flex;gap:12px;justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-icons-round">save</span>
+                            <span>Save Schedule</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Edit Employee Assets                        -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="assets-edit-modal" class="modal">
+        <div class="modal-content" style="max-width:480px;">
+            <div class="modal-header">
+                <h2>Edit Office Assets</h2>
+                <button class="modal-close"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="assets-edit-form">
+                    <input type="hidden" id="assets-edit-emp-id" value="">
+                    <div class="form-group">
+                        <label for="assets-edit-emp-name">Employee Name</label>
+                        <input type="text" id="assets-edit-emp-name" readonly disabled class="input-disabled">
+                    </div>
+                    
+                    <!-- Laptop settings -->
+                    <div class="form-group">
+                        <label for="assets-edit-laptop">Taken Office Laptop?</label>
+                        <select id="assets-edit-laptop" required>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="assets-edit-laptop-details-group">
+                        <label for="assets-edit-laptop-details">Laptop Name & Details</label>
+                        <input type="text" id="assets-edit-laptop-details" placeholder="e.g. Dell Latitude 5420">
+                    </div>
+                    
+                    <!-- Headset settings -->
+                    <div class="form-group">
+                        <label for="assets-edit-headset">Taken Headset from Office?</label>
+                        <select id="assets-edit-headset" required>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:16px;">
+                        <button type="button" class="btn btn-secondary modal-cancel-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-icons-round">save</span>
+                            <span>Save Asset Details</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════ -->
+    <!-- MODAL: Resume Preview Modal                       -->
+    <!-- ══════════════════════════════════════════════════ -->
+    <div id="resume-preview-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px; width: 90%; height: 85vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h2>Resume Preview</h2>
+                <button class="modal-close" onclick="closeResumePreviewModal()"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body" style="padding: 20px; flex: 1; overflow-y: auto; background: var(--bg-card); display: flex; flex-direction: column; align-items: center;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 16px; text-align: center;">You can edit the details directly in the dotted fields below before downloading the final PDF resume.</p>
+                
+                <!-- Resume Editor Paper Sheet -->
+                <div class="resume-paper" style="width: 100%; max-width: 700px; background: #ffffff; color: #1e293b; padding: 40px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); font-family: 'Inter', sans-serif; box-sizing: border-box; margin-bottom: 16px; text-align: left;">
+                    
+                    <!-- Header -->
+                    <div style="text-align: center;">
+                        <input type="text" id="res-edit-name" style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 800; color: #000000; width: 100%; border: none; border-bottom: 1.5px dashed #cbd5e1; background: transparent; padding: 4px 0; margin-bottom: 4px; text-transform: uppercase; text-align: center;" placeholder="Employee Name">
+                        <input type="text" id="res-edit-job-title" style="font-family: 'Outfit', sans-serif; font-size: 1.0rem; font-weight: 700; color: #000000; width: 100%; border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; padding: 2px 0; margin-bottom: 8px; text-transform: uppercase; text-align: center;" placeholder="Job Title">
+                        
+                        <!-- Contact Block with Diamonds -->
+                        <div style="display: flex; gap: 8px; font-size: 0.82rem; color: #000000; margin-bottom: 12px; flex-wrap: wrap; align-items: center; justify-content: center;">
+                            <input type="text" id="res-edit-linkedin" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; color: #000000; width: 180px; font-size: 0.82rem; padding: 0; text-align: center;" placeholder="linkedin.com/in/username">
+                            <span>&#9830;</span>
+                            <input type="email" id="res-edit-email" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; color: #000000; width: 180px; font-size: 0.82rem; padding: 0; text-align: center;" placeholder="Email">
+                            <span>&#9830;</span>
+                            <input type="text" id="res-edit-phone" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; color: #000000; width: 120px; font-size: 0.82rem; padding: 0; text-align: center;" placeholder="Phone Number">
+                            <span>&#9830;</span>
+                            <input type="text" id="res-edit-location" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; color: #000000; width: 130px; font-size: 0.82rem; padding: 0; text-align: center;" placeholder="HYDERABAD, INDIA">
+                        </div>
+                    </div>
+                    
+                    <hr style="border: 0.5px solid #000000; margin-top: 4px; margin-bottom: 16px;">
+                    
+                    <!-- 1. Executive Summary -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Executive Summary</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-executive-summary" style="width: 100%; height: 70px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="Summary of overall experience..."></textarea>
+                    </div>
+
+                    <!-- 2. Core Competencies -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Core Competencies</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-core-competencies" style="width: 100%; height: 70px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List your technical skills and write a 1-liner about each..."></textarea>
+                    </div>
+
+                    <!-- 3. Key Clients Supported -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Key Clients Supported</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-key-clients" style="width: 100%; height: 50px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="Mention the clients you supported..."></textarea>
+                    </div>
+
+                    <!-- 4. Professional Experience -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Professional Experience – List from the current job to first job</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        
+                        <!-- Arohak Inc -->
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; gap: 8px; font-weight: 700; font-size: 0.85rem; align-items: center;">
+                                <span>AROHAK INC | Hyderabad, India |</span>
+                                <input type="text" id="res-edit-arohak-title" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 180px; padding: 0; color: #000000;" placeholder="Job Title">
+                                <span>| (Start Date)</span>
+                                <input type="text" id="res-edit-arohak-start" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 140px; padding: 0; color: #000000;" placeholder="Dec 2025 – Present">
+                            </div>
+                            <textarea id="res-edit-arohak-resp" style="width: 100%; height: 70px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical; margin-top: 4px;" placeholder="Summaries your Job role in Arohak, Roles & Responsibilities..."></textarea>
+                        </div>
+                        
+                        <!-- Previous Company -->
+                        <div>
+                            <div style="display: flex; gap: 6px; font-weight: 700; font-size: 0.85rem; flex-wrap: wrap; align-items: center;">
+                                <input type="text" id="res-edit-prev-company" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 150px; padding: 0; color: #000000;" placeholder="Previous Company Name">
+                                <span>|</span>
+                                <input type="text" id="res-edit-prev-location" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 100px; padding: 0; color: #000000;" placeholder="Location">
+                                <span>|</span>
+                                <input type="text" id="res-edit-prev-title" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 150px; padding: 0; color: #000000;" placeholder="Job Title">
+                                <span>|</span>
+                                <input type="text" id="res-edit-prev-tenure" style="border: none; border-bottom: 1px dashed #cbd5e1; background: transparent; font-weight: 700; font-size: 0.85rem; width: 180px; padding: 0; color: #000000;" placeholder="Start Date – End Date">
+                            </div>
+                            <textarea id="res-edit-prev-resp" style="width: 100%; height: 75px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical; margin-top: 4px;" placeholder="Summaries your Job role in your company, Roles & Responsibilities..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 5. Career Achievements -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Career Achievements</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-achievements" style="width: 100%; height: 60px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List your achievements throughout your career..."></textarea>
+                    </div>
+
+                    <!-- 6. Education -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Education</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-education" style="width: 100%; height: 60px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List your educational achievements with details about your college and pass out year (MM/YYYY)..."></textarea>
+                    </div>
+
+                    <!-- 7. Industry Experience -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Industry Experience</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-industry-experience" style="width: 100%; height: 60px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List the industry that you have experience (e.g. Banking & Financial Services)..."></textarea>
+                    </div>
+
+                    <!-- 8. Certifications -->
+                    <div style="margin-bottom: 16px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Certifications</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-certifications" style="width: 100%; height: 60px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List certifications, Name, Exam ID, and pass out year/month..."></textarea>
+                    </div>
+
+                    <!-- 9. Tools & Technologies -->
+                    <div style="margin-bottom: 8px;">
+                        <h3 style="font-size: 0.9rem; font-weight: 700; color: #000000; text-transform: uppercase; margin-bottom: 2px;">Tools & Technologies</h3>
+                        <hr style="border: 0.4px solid #000000; margin-top: 2px; margin-bottom: 6px;">
+                        <textarea id="res-edit-tools-technologies" style="width: 100%; height: 60px; border: 1px dashed #cbd5e1; font-family: inherit; font-size: 0.85rem; padding: 4px; background: transparent; color: #1e293b; line-height: 1.4; resize: vertical;" placeholder="List your skills (e.g. ServiceNow, SAP)..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px; border-top: 1px solid var(--border-color); background: var(--bg-card); width: 100%; box-sizing: border-box;">
+                <button type="button" class="btn btn-secondary" onclick="closeResumePreviewModal()">Cancel</button>
+                <button type="button" id="download-preview-pdf-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;">
+                    <span class="material-icons-round">download</span>
+                    <span>Download PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
