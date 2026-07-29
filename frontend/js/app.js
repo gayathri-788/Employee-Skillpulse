@@ -24,6 +24,7 @@ const state = {
     currentAdminAttEmpId: null,
     currentTimesheetWeek: '',
     currentTimesheetData: null,
+    adminSkillTargetsOverview: [],
 };
 
 
@@ -363,6 +364,7 @@ function switchTab(tabId) {
     else if (tabId === 'admin-attendance') loadAdminAttendanceOverview();
     else if (tabId === 'admin-schedule')   loadAdminSchedules();
     else if (tabId === 'emp-assets')       loadOfficeAssets();
+    else if (tabId === 'admin-skilltargets') loadAdminSkillTargetsOverview();
 }
 
 // ─────────────────────────────────────────────
@@ -834,6 +836,172 @@ async function handleAssetsEditSubmit(e) {
         showToast(err.message, 'error');
     }
 }
+
+
+// ─────────────────────────────────────────────
+// Admin Skill Targets Tracker (new)
+// ─────────────────────────────────────────────
+
+async function loadAdminSkillTargetsOverview() {
+    const tableBody = document.getElementById('admin-skilltargets-employees-tbody');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div>Loading skill targets sheet...</td></tr>';
+    
+    const yearSelect = document.getElementById('admin-st-filter-year');
+    const year = yearSelect ? yearSelect.value : new Date().getFullYear();
+
+    try {
+        const data = await apiFetch(`/api/admin/skilltargets-overview?year=${year}`);
+        state.adminSkillTargetsOverview = data;
+        renderAdminSkillTargetsOverview();
+    } catch (err) {
+        showToast(`Failed to load skill targets: ${err.message}`, 'error');
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:20px;">Error: ${err.message}</td></tr>`;
+    }
+}
+
+function renderAdminSkillTargetsOverview() {
+    const tableBody = document.getElementById('admin-skilltargets-employees-tbody');
+    if (!tableBody) return;
+
+    const searchVal = document.getElementById('admin-st-search-name').value.toLowerCase().trim();
+    const statusVal = document.getElementById('admin-st-filter-status').value;
+
+    // Filter employees
+    const filtered = (state.adminSkillTargetsOverview || []).filter(item => {
+        const matchesSearch = !searchVal || 
+            item.name.toLowerCase().includes(searchVal) || 
+            item.employee_id.toLowerCase().includes(searchVal);
+        
+        const matchesStatus = !statusVal || item.targets_status === statusVal;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    // Update stats counts (based on total loaded records)
+    let totalCount = (state.adminSkillTargetsOverview || []).length;
+    let onpointCount = (state.adminSkillTargetsOverview || []).filter(item => item.targets_status === 'Target is onpoint').length;
+    let pendingCount = (state.adminSkillTargetsOverview || []).filter(item => item.targets_status === 'Pending').length;
+    let noneCount = (state.adminSkillTargetsOverview || []).filter(item => item.targets_status === 'No Targets Set').length;
+
+    // Update summary DOM elements
+    document.getElementById('admin-st-total-count').textContent = totalCount;
+    document.getElementById('admin-st-onpoint-count').textContent = onpointCount;
+    document.getElementById('admin-st-pending-count').textContent = pendingCount;
+    document.getElementById('admin-st-none-count').textContent = noneCount;
+
+    if (filtered.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">No employees found matching the filters.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = '';
+
+    filtered.forEach(item => {
+        let badgeClass = 'badge-none';
+        if (item.targets_status === 'Target is onpoint') {
+            badgeClass = 'badge-onpoint';
+        } else if (item.targets_status === 'Pending') {
+            badgeClass = 'badge-pending';
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${item.employee_id.toUpperCase()}</strong></td>
+            <td>${item.name}</td>
+            <td><span class="emp-card-project-badge">${item.project_name}</span></td>
+            <td><span class="${badgeClass}">${item.targets_status}</span></td>
+            <td>
+                <button class="toggle-details-btn" onclick="toggleTargetDetails('${item.employee_id}')" id="st-toggle-${item.employee_id}">
+                    <span class="material-icons-round" style="font-size:16px;">expand_more</span>
+                    <span>Show (${item.targets.length})</span>
+                </button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+
+        // Details Row
+        const detailsTr = document.createElement('tr');
+        detailsTr.id = `st-details-row-${item.employee_id}`;
+        detailsTr.className = 'admin-targets-details-row';
+        detailsTr.style.display = 'none';
+
+        let targetsListHtml = '';
+        if (item.targets.length === 0) {
+            targetsListHtml = '<p style="color:var(--text-muted);font-style:italic;margin:0;">No targets declared for this year.</p>';
+        } else {
+            targetsListHtml = `
+                <table class="admin-targets-subtable">
+                    <thead>
+                        <tr>
+                            <th>Skill Name</th>
+                            <th>Target Level</th>
+                            <th>Start Date</th>
+                            <th>Target End Date</th>
+                            <th>Finished Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${item.targets.map(t => {
+                            const startDate = t.created_at ? new Date(t.created_at).toLocaleDateString('en-GB') : '—';
+                            const targetEndDate = t.target_completion_date ? new Date(t.target_completion_date + 'T00:00:00').toLocaleDateString('en-GB') : '—';
+                            const finishedDate = t.status === 'Completed' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('en-GB') : '—';
+                            
+                            let statusClass = 'status-planned';
+                            if (t.status === 'In Progress') statusClass = 'status-inprogress';
+                            if (t.status === 'Completed') statusClass = 'status-completed';
+
+                            return `
+                                <tr>
+                                    <td><strong>${t.skill_name}</strong></td>
+                                    <td><span class="skill-target-level-badge">${t.target_level || '—'}</span></td>
+                                    <td>${startDate}</td>
+                                    <td>${targetEndDate}</td>
+                                    <td>${finishedDate}</td>
+                                    <td><span class="skill-target-status-badge ${statusClass}">${t.status}</span></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        detailsTr.innerHTML = `
+            <td colspan="5" style="padding:0;">
+                <div class="admin-targets-details-box">
+                    <h3 style="font-size:0.9rem;margin-bottom:8px;color:var(--text-primary);">Target Skills Details for ${item.name}</h3>
+                    ${targetsListHtml}
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(detailsTr);
+    });
+}
+
+// Global scope details toggle
+window.toggleTargetDetails = function(empId) {
+    const row = document.getElementById(`st-details-row-${empId}`);
+    const btn = document.getElementById(`st-toggle-${empId}`);
+    if (!row || !btn) return;
+
+    const isCollapsed = row.style.display === 'none';
+    row.style.display = isCollapsed ? 'table-row' : 'none';
+    
+    const icon = btn.querySelector('.material-icons-round');
+    const label = btn.querySelector('span:not(.material-icons-round)');
+    
+    if (isCollapsed) {
+        icon.textContent = 'expand_less';
+    } else {
+        icon.textContent = 'expand_more';
+    }
+    
+    const targetCount = row.querySelectorAll('.admin-targets-subtable tbody tr').length;
+    label.textContent = isCollapsed ? `Hide (${targetCount})` : `Show (${targetCount})`;
+};
 
 // ─────────────────────────────────────────────
 // PAGE 3: Employee Attendance (new)
@@ -2787,6 +2955,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('assets-edit-laptop')?.addEventListener('change', toggleLaptopDetailsVisibility);
     document.getElementById('assets-edit-form')?.addEventListener('submit', handleAssetsEditSubmit);
+
+
+    // Admin Skill Targets bindings
+    document.getElementById('admin-st-search-name')?.addEventListener('input', () => {
+        renderAdminSkillTargetsOverview();
+    });
+    document.getElementById('admin-st-filter-status')?.addEventListener('change', () => {
+        renderAdminSkillTargetsOverview();
+    });
+    document.getElementById('admin-st-filter-year')?.addEventListener('change', () => {
+        loadAdminSkillTargetsOverview();
+    });
 
 
     // Modal cancel buttons and background close triggers

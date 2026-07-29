@@ -2698,3 +2698,131 @@ input:checked+.slider:before {
 .light-theme #timesheet-table .ts-delete-row-btn:hover {
     background: rgba(239, 68, 68, 0.1) !important;
 }
+
+
+/* Admin Skill Targets Tracker Styles */
+.badge-onpoint {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #10b981 !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.light-theme .badge-onpoint {
+    background: rgba(16, 185, 129, 0.08) !important;
+    color: #059669 !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+.badge-pending {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.light-theme .badge-pending {
+    background: rgba(245, 158, 11, 0.08) !important;
+    color: #d97706 !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+.badge-none {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 6px;
+    min-width: 140px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    background: rgba(156, 163, 175, 0.12) !important;
+    color: #9ca3af !important;
+    border: 1px solid rgba(156, 163, 175, 0.3) !important;
+}
+.light-theme .badge-none {
+    background: rgba(156, 163, 175, 0.08) !important;
+    color: #4b5563 !important;
+    border-color: rgba(156, 163, 175, 0.2) !important;
+}
+
+.admin-targets-details-row {
+    background: rgba(30, 41, 59, 0.4) !important;
+}
+.light-theme .admin-targets-details-row {
+    background: rgba(241, 245, 249, 0.5) !important;
+}
+
+.admin-targets-details-box {
+    padding: 16px 24px;
+    border-left: 4px solid var(--accent-secondary);
+}
+
+.admin-targets-subtable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.admin-targets-subtable th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-targets-subtable td {
+    font-size: 0.825rem;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.light-theme .admin-targets-subtable td {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.toggle-details-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.toggle-details-btn:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--accent-secondary) !important;
+}
+.light-theme .toggle-details-btn:hover {
+    background: rgba(0, 0, 0, 0.03) !important;
+}

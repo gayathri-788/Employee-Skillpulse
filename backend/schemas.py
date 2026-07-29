@@ -326,3 +326,13 @@ class CustomResumeRequest(BaseModel):
     tools_technologies: Optional[str] = None
 
 
+class AdminSkillTargetOverviewItem(BaseModel):
+    employee_id: str
+    name: str
+    project_name: Optional[str] = None
+    targets_status: str
+    targets: List[SkillTargetResponse] = []
+
+
+
+

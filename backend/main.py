@@ -19,7 +19,7 @@ from backend.schemas import (
     SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
     LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
     TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
-    AssetUpdate, CustomResumeRequest,
+    AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
 )
 from backend.auth import (
     verify_password, get_password_hash, create_access_token,
@@ -1116,6 +1116,44 @@ def get_employee_skill_targets(
     if year:
         q = q.filter(SkillTarget.year == year)
     return q.order_by(SkillTarget.year.desc(), SkillTarget.created_at.desc()).all()
+
+
+@app.get("/api/admin/skilltargets-overview", response_model=List[AdminSkillTargetOverviewItem])
+def get_admin_skilltargets_overview(
+    year: Optional[int] = None,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    if not year:
+        year = datetime.datetime.utcnow().year
+        
+    employees = db.query(Employee).all()
+    result = []
+    
+    for emp in employees:
+        targets = db.query(SkillTarget).filter(
+            SkillTarget.employee_id == emp.employee_id,
+            SkillTarget.year == year
+        ).order_by(SkillTarget.created_at.desc()).all()
+        
+        if not targets:
+            status = "No Targets Set"
+        else:
+            all_completed = all(t.status == "Completed" for t in targets)
+            if all_completed:
+                status = "Target is onpoint"
+            else:
+                status = "Pending"
+                
+        result.append(AdminSkillTargetOverviewItem(
+            employee_id=emp.employee_id,
+            name=emp.name,
+            project_name=emp.project_name or "Bench",
+            targets_status=status,
+            targets=targets
+        ))
+        
+    return result
 
 
 # ─────────────────────────────────────────────

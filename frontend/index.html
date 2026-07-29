@@ -140,6 +140,10 @@
                                 <span class="material-icons-round">devices</span>
                                 <span>Office Assets</span>
                             </button>
+                            <button class="nav-link" data-tab="admin-skilltargets">
+                                <span class="material-icons-round">track_changes</span>
+                                <span>Skill Targets Sheet</span>
+                            </button>
                              <!-- Admin weekly schedule removed -->
                         </div>
                     </nav>
@@ -971,6 +975,98 @@
                                     </thead>
                                     <tbody id="assets-employees-tbody">
                                         <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB: Admin Skill Targets Overview (new)    -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-skilltargets" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Yearly Skill Targets Sheet</h1>
+                                <p>Monitor all employees' skill targets, completion status, and dates.</p>
+                            </div>
+                            <div class="page-header-badges">
+                                <div class="last-updated-badge">
+                                    <span>Total Employees: </span><strong id="admin-st-total-count">0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div class="stats-row" style="margin-bottom:24px;">
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper green"><span class="material-icons-round">check_circle</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Target is onpoint</span>
+                                    <span id="admin-st-onpoint-count" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper orange"><span class="material-icons-round">trending_up</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Pending / In Progress</span>
+                                    <span id="admin-st-pending-count" class="stat-number">0</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon-wrapper grey"><span class="material-icons-round">rule</span></div>
+                                <div class="stat-info">
+                                    <span class="stat-label">No Targets Set</span>
+                                    <span id="admin-st-none-count" class="stat-number">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Filters panel -->
+                        <div class="search-panel" style="margin-bottom:24px;">
+                            <div class="search-grid" style="grid-template-columns: 1fr 180px 180px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-st-search-name">Search Employee Name / ID</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">search</span>
+                                        <input type="text" id="admin-st-search-name" placeholder="Name or Emp ID...">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-st-filter-status">Filter by Status</label>
+                                    <select id="admin-st-filter-status">
+                                        <option value="">All Statuses</option>
+                                        <option value="Target is onpoint">Target is onpoint</option>
+                                        <option value="Pending">Pending</option>
+                                        <option value="No Targets Set">No Targets Set</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-st-filter-year">Year</label>
+                                    <select id="admin-st-filter-year">
+                                        <option value="2026">2026</option>
+                                        <option value="2027">2027</option>
+                                        <option value="2025">2025</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employee Skill Targets Spreadsheet Table -->
+                        <div class="panel table-panel">
+                            <div class="table-container">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Emp ID</th>
+                                            <th>Employee Name</th>
+                                            <th>Project</th>
+                                            <th>Overall Targets Status</th>
+                                            <th style="width: 100px;">Targets</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-skilltargets-employees-tbody">
+                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div>Loading employees' skill targets...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
