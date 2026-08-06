@@ -221,6 +221,15 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def normalize_path_middleware(request: Request, call_next):
+    if "//" in request.scope["path"]:
+        request.scope["path"] = "/" + "/".join(filter(None, request.scope["path"].split("/")))
+    response = await call_next(request)
+    return response
+
+
+
 # ─────────────────────────────────────────────
 # Auth Endpoints
 # ─────────────────────────────────────────────
