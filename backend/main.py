@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import datetime
 from typing import List, Optional
@@ -8,23 +9,46 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from backend.database import get_db, engine, Base
-from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow
-from backend.schemas import (
-    UserLogin, Token, EmployeeResponse,
-    EmployeeRestrictedResponse, EmployeeUpdate, PasswordChange,
-    ScheduleResponse, ScheduleUpdate,
-    AttendanceRecord, AttendanceUpsert, AttendanceResponse,
-    CertSkillsResponse,
-    SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
-    LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
-    TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
-    AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
-)
-from backend.auth import (
-    verify_password, get_password_hash, create_access_token,
-    get_current_user, require_admin
-)
+# Ensure sys.path includes backend and root directory
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+try:
+    from database import get_db, engine, Base, SessionLocal
+    from models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow
+    from schemas import (
+        UserLogin, Token, EmployeeResponse,
+        EmployeeRestrictedResponse, EmployeeUpdate, PasswordChange,
+        ScheduleResponse, ScheduleUpdate,
+        AttendanceRecord, AttendanceUpsert, AttendanceResponse,
+        CertSkillsResponse,
+        SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
+        LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
+        TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
+        AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
+    )
+    from auth import (
+        verify_password, get_password_hash, create_access_token,
+        get_current_user, require_admin
+    )
+except ModuleNotFoundError:
+    from backend.database import get_db, engine, Base, SessionLocal
+    from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow
+    from backend.schemas import (
+        UserLogin, Token, EmployeeResponse,
+        EmployeeRestrictedResponse, EmployeeUpdate, PasswordChange,
+        ScheduleResponse, ScheduleUpdate,
+        AttendanceRecord, AttendanceUpsert, AttendanceResponse,
+        CertSkillsResponse,
+        SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
+        LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
+        TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
+        AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
+    )
+    from backend.auth import (
+        verify_password, get_password_hash, create_access_token,
+        get_current_user, require_admin
+    )
 
 # Ensure database tables are created
 Base.metadata.create_all(bind=engine)
@@ -494,7 +518,10 @@ def download_generated_resume(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    from backend.resume_generator import generate_resume_pdf
+    try:
+        from resume_generator import generate_resume_pdf
+    except ModuleNotFoundError:
+        from backend.resume_generator import generate_resume_pdf
     
     employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
     if not employee:
@@ -587,7 +614,10 @@ def download_generated_resume_custom(
     if current_user.role != "admin" and employee.username != current_user.username:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    from backend.resume_generator import generate_resume_pdf
+    try:
+        from resume_generator import generate_resume_pdf
+    except ModuleNotFoundError:
+        from backend.resume_generator import generate_resume_pdf
 
     try:
         pdf_bytes = generate_resume_pdf(data)
@@ -1329,8 +1359,12 @@ import threading
 import time
 import pandas as pd
 from fastapi.responses import StreamingResponse
-from backend.email_service import send_profile_update_email
-from backend.database import SessionLocal
+try:
+    from email_service import send_profile_update_email
+    from database import SessionLocal
+except ModuleNotFoundError:
+    from backend.email_service import send_profile_update_email
+    from backend.database import SessionLocal
 
 @app.get("/api/admin/employees/export-excel")
 def export_employees_excel(

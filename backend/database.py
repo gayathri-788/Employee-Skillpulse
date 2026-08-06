@@ -1,6 +1,15 @@
+import os
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from backend.config import DATABASE_URL
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from config import DATABASE_URL
+except ModuleNotFoundError:
+    from backend.config import DATABASE_URL
+
 
 # check_same_thread=False is needed only for SQLite
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

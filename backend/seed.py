@@ -4,12 +4,20 @@ import random
 import pandas as pd
 from datetime import datetime, date, timedelta
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.database import engine, Base, SessionLocal
-from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest
-from backend.auth import get_password_hash
-from backend.config import DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, DEFAULT_EMPLOYEE_PASSWORD
+try:
+    from database import engine, Base, SessionLocal
+    from models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest
+    from auth import get_password_hash
+    from config import DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, DEFAULT_EMPLOYEE_PASSWORD
+except ModuleNotFoundError:
+    from backend.database import engine, Base, SessionLocal
+    from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest
+    from backend.auth import get_password_hash
+    from backend.config import DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, DEFAULT_EMPLOYEE_PASSWORD
+
 
 
 def clean_val(val):

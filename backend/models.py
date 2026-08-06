@@ -1,7 +1,16 @@
+import os
+import sys
 from sqlalchemy import Column, String, Float, Integer, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from backend.database import Base
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from database import Base
+except ModuleNotFoundError:
+    from backend.database import Base
+
 
 class User(Base):
     __tablename__ = "users"

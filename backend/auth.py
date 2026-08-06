@@ -5,9 +5,20 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from backend.config import JWT_SECRET, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from backend.database import get_db
-from backend.models import User, Employee
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+try:
+    from config import JWT_SECRET, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+    from database import get_db
+    from models import User, Employee
+except ModuleNotFoundError:
+    from backend.config import JWT_SECRET, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+    from backend.database import get_db
+    from backend.models import User, Employee
+
 
 import bcrypt
 
