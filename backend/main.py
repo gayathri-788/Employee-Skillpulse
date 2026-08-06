@@ -76,6 +76,20 @@ with engine.connect() as conn:
         except Exception as e:
             print(f"Error migrating database (adding last_reminder_sent): {e}")
 
+# Automatic database seeding check (if database is empty on server startup)
+try:
+    with SessionLocal() as db:
+        if db.query(User).count() == 0:
+            print("Database has 0 users. Automatically running seed_db()...")
+            try:
+                from seed import seed_db
+            except ModuleNotFoundError:
+                from backend.seed import seed_db
+            seed_db()
+except Exception as e:
+    print(f"Automatic seed check notice: {e}")
+
+
 
 # ─────────────────────────────────────────────
 # Helpers

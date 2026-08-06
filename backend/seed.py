@@ -89,6 +89,11 @@ def seed_db():
         # ── Read Excel ───────────────────────────────────────────────
         excel_path = "Emp Details.xlsx"
         if not os.path.exists(excel_path):
+            alt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Emp Details.xlsx")
+            if os.path.exists(alt_path):
+                excel_path = alt_path
+
+        if not os.path.exists(excel_path):
             print(f"Excel file not found at: {excel_path}")
             db.commit()
             return

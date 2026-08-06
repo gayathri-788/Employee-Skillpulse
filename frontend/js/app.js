@@ -35,7 +35,9 @@ const state = {
 async function apiFetch(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers };
     if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const cleanBase = API_BASE_URL ? API_BASE_URL.replace(/\/+$/, '') : '';
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const response = await fetch(`${cleanBase}${cleanEndpoint}`, {
         ...options,
         headers
     });
