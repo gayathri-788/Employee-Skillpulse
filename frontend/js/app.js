@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────
 // Global State
 // ─────────────────────────────────────────────
+const API_BASE_URL = "https://employee-skillpulse.onrender.com/";
 const state = {
     token: localStorage.getItem('token') || '',
     role: localStorage.getItem('role') || '',
@@ -34,11 +35,13 @@ const state = {
 async function apiFetch(endpoint, options = {}) {
     const headers = { 'Content-Type': 'application/json', ...options.headers };
     if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-    const response = await fetch(endpoint, { ...options, headers });
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers
+    });
     if (response.status === 401) {
         showToast('Session expired. Please log in again.', 'warning');
         logout();
-        
         throw new Error('Unauthorized');
     }
     if (!response.ok) {
@@ -81,13 +84,13 @@ async function downloadResumeFile(endpoint, defaultFilename) {
         showToast("Downloading file...", "info");
         const headers = {};
         if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-        
+
         const response = await fetch(endpoint, { headers });
         if (!response.ok) {
             const err = await response.json().catch(() => ({ detail: 'Download failed' }));
             throw new Error(err.detail || 'Download failed');
         }
-        
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -106,11 +109,11 @@ function updateResumePanelUI(profile) {
     const statusDiv = document.getElementById('uploaded-resume-status');
     const nameSpan = document.getElementById('uploaded-resume-name');
     const uploadBtn = document.getElementById('upload-self-resume-btn');
-    
+
     if (profile && profile.resume_path) {
         const parts = profile.resume_path.split(/[/\\]/);
         const filename = parts[parts.length - 1];
-        
+
         if (nameSpan) nameSpan.textContent = filename;
         if (statusDiv) statusDiv.classList.remove('hidden');
         if (uploadBtn) uploadBtn.innerHTML = `<span class="material-icons-round">upload_file</span><span>Replace Resume</span>`;
@@ -120,10 +123,10 @@ function updateResumePanelUI(profile) {
     }
 }
 
-window.openResumePreviewModal = async function(employeeId) {
+window.openResumePreviewModal = async function (employeeId) {
     const modal = document.getElementById('resume-preview-modal');
     if (!modal) return;
-    
+
     // Reset/clear modal fields
     document.getElementById('res-edit-name').value = '';
     document.getElementById('res-edit-job-title').value = '';
@@ -131,21 +134,21 @@ window.openResumePreviewModal = async function(employeeId) {
     document.getElementById('res-edit-email').value = '';
     document.getElementById('res-edit-phone').value = '';
     document.getElementById('res-edit-location').value = '';
-    
+
     document.getElementById('res-edit-executive-summary').value = '';
     document.getElementById('res-edit-core-competencies').value = '';
     document.getElementById('res-edit-key-clients').value = '';
-    
+
     document.getElementById('res-edit-arohak-title').value = '';
     document.getElementById('res-edit-arohak-start').value = '';
     document.getElementById('res-edit-arohak-resp').value = '';
-    
+
     document.getElementById('res-edit-prev-company').value = '';
     document.getElementById('res-edit-prev-location').value = '';
     document.getElementById('res-edit-prev-title').value = '';
     document.getElementById('res-edit-prev-tenure').value = '';
     document.getElementById('res-edit-prev-resp').value = '';
-    
+
     document.getElementById('res-edit-achievements').value = '';
     document.getElementById('res-edit-education').value = '';
     document.getElementById('res-edit-industry-experience').value = '';
@@ -153,11 +156,11 @@ window.openResumePreviewModal = async function(employeeId) {
     document.getElementById('res-edit-tools-technologies').value = '';
 
     modal.classList.add('active');
-    
+
     try {
         showToast("Fetching resume data...", "info");
         const emp = await apiFetch(`/api/employees/${employeeId}`);
-        
+
         // Populate fields
         document.getElementById('res-edit-name').value = emp.name || '';
         document.getElementById('res-edit-job-title').value = emp.primary_skill || 'Technical Associate';
@@ -165,7 +168,7 @@ window.openResumePreviewModal = async function(employeeId) {
         document.getElementById('res-edit-email').value = emp.email || `${emp.username}@arohak.com`;
         document.getElementById('res-edit-phone').value = '+91-0000000000';
         document.getElementById('res-edit-location').value = 'HYDERABAD, INDIA';
-        
+
         // Executive Summary
         let exec = emp.summary || '';
         if (!exec) {
@@ -175,7 +178,7 @@ window.openResumePreviewModal = async function(employeeId) {
             }
         }
         document.getElementById('res-edit-executive-summary').value = exec;
-        
+
         // Core Competencies
         let comps = [];
         if (emp.primary_skill) comps.push(`* ${emp.primary_skill}: expert in application engineering and support`);
@@ -183,36 +186,36 @@ window.openResumePreviewModal = async function(employeeId) {
         if (emp.third_skill) comps.push(`* ${emp.third_skill}: knowledgeable technical support specialist`);
         let compsText = comps.length > 0 ? comps.join('\n') : "Technical operations and development support";
         document.getElementById('res-edit-core-competencies').value = compsText;
-        
+
         // Key Clients Supported
         document.getElementById('res-edit-key-clients').value = "Internal and client-assigned development projects";
-        
+
         // Arohak Experience
         document.getElementById('res-edit-arohak-title').value = `Technical Associate - ${emp.primary_skill || 'Developer'}`;
         document.getElementById('res-edit-arohak-start').value = "Dec 2025 – Present";
-        
+
         let arohakExp = emp.arohak_exp || '';
         if (!arohakExp) {
             arohakExp = "Active team member participating in project delivery and system execution matching primary skills.";
         }
         document.getElementById('res-edit-arohak-resp').value = arohakExp;
-        
+
         // Previous Experience
         document.getElementById('res-edit-prev-company').value = "Previous Company Name";
         document.getElementById('res-edit-prev-location').value = "Location";
         document.getElementById('res-edit-prev-title').value = "Job Title";
         document.getElementById('res-edit-prev-tenure').value = "Start Date – End Date";
         document.getElementById('res-edit-prev-resp').value = emp.previous_exp || "* Summaries your Job role in your company , Roles & Responsibilities";
-        
+
         // Other standard fields
         document.getElementById('res-edit-achievements').value = "* List your achievements throughout your career";
         document.getElementById('res-edit-education').value = "List your educational achievements with details about your college and pass out year (MM/YYYY)";
         document.getElementById('res-edit-industry-experience').value = "Banking & Financial Services | Manufacturing | Retail & Consumer Goods | Energy & Utilities | Enterprise Technology Services | Infrastructure & Managed Services";
         document.getElementById('res-edit-certifications').value = emp.certifications || "List your certifications . Name of the certification , Exam ID and pass out year and month";
-        
+
         let tools = [emp.primary_skill, emp.secondary_skill, emp.third_skill].filter(Boolean).join(', ');
         document.getElementById('res-edit-tools-technologies').value = tools || "ServiceNow, SAP";
-        
+
         // Setup download button click
         const downloadBtn = document.getElementById('download-preview-pdf-btn');
         if (downloadBtn) {
@@ -224,44 +227,44 @@ window.openResumePreviewModal = async function(employeeId) {
                     email: document.getElementById('res-edit-email').value.trim() || null,
                     phone: document.getElementById('res-edit-phone').value.trim() || null,
                     location: document.getElementById('res-edit-location').value.trim() || null,
-                    
+
                     executive_summary: document.getElementById('res-edit-executive-summary').value.trim() || null,
                     core_competencies: document.getElementById('res-edit-core-competencies').value.trim() || null,
                     key_clients: document.getElementById('res-edit-key-clients').value.trim() || null,
-                    
+
                     arohak_title: document.getElementById('res-edit-arohak-title').value.trim() || null,
                     arohak_start: document.getElementById('res-edit-arohak-start').value.trim() || null,
                     arohak_resp: document.getElementById('res-edit-arohak-resp').value.trim() || null,
-                    
+
                     prev_company: document.getElementById('res-edit-prev-company').value.trim() || null,
                     prev_location: document.getElementById('res-edit-prev-location').value.trim() || null,
                     prev_title: document.getElementById('res-edit-prev-title').value.trim() || null,
                     prev_tenure: document.getElementById('res-edit-prev-tenure').value.trim() || null,
                     prev_resp: document.getElementById('res-edit-prev-resp').value.trim() || null,
-                    
+
                     achievements: document.getElementById('res-edit-achievements').value.trim() || null,
                     education: document.getElementById('res-edit-education').value.trim() || null,
                     industry_experience: document.getElementById('res-edit-industry-experience').value.trim() || null,
                     certifications: document.getElementById('res-edit-certifications').value.trim() || null,
                     tools_technologies: document.getElementById('res-edit-tools-technologies').value.trim() || null
                 };
-                
+
                 try {
                     showToast("Downloading customized PDF...", "info");
                     const headers = { 'Content-Type': 'application/json' };
                     if (state.token) headers['Authorization'] = `Bearer ${state.token}`;
-                    
+
                     const response = await fetch(`/api/employees/${employeeId}/resume/download-generated-custom`, {
                         method: 'POST',
                         headers: headers,
                         body: JSON.stringify(payload)
                     });
-                    
+
                     if (!response.ok) {
                         const err = await response.json().catch(() => ({ detail: 'Failed to download PDF' }));
                         throw new Error(err.detail || 'Download failed');
                     }
-                    
+
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -277,19 +280,19 @@ window.openResumePreviewModal = async function(employeeId) {
                 }
             };
         }
-        
+
     } catch (err) {
         showToast(`Failed to load preview: ${err.message}`, 'error');
         closeResumePreviewModal();
     }
 };
 
-window.closeResumePreviewModal = function() {
+window.closeResumePreviewModal = function () {
     const modal = document.getElementById('resume-preview-modal');
     if (modal) modal.classList.remove('active');
 };
 
-window.downloadEmployeeUploadedResume = function(employeeId, ext = 'pdf') {
+window.downloadEmployeeUploadedResume = function (employeeId, ext = 'pdf') {
     downloadResumeFile(`/api/employees/${employeeId}/resume/download-uploaded`, `${employeeId}_resume.${ext}`);
 };
 
@@ -314,7 +317,7 @@ function getStarsHtml(rating) {
 }
 
 function statusBadgeHtml(status) {
-    const map = { 
+    const map = {
         P: { cls: 's-p', label: 'In-Office' },
         WFH: { cls: 's-wfh', label: 'WFH' },
         Ab: { cls: 's-ab', label: 'Absent' },
@@ -354,17 +357,17 @@ function switchTab(tabId) {
     });
 
     // Tab-specific loaders
-    if (tabId === 'emp-directory')    loadEmployeeDirectory();
-    else if (tabId === 'admin-dashboard')  loadAdminStats();
-    else if (tabId === 'admin-directory')  loadAdminDirectory();
-    else if (tabId === 'emp-profile')      loadMyProfile();
-    else if (tabId === 'emp-attendance')   loadMyAttendance();
-    else if (tabId === 'emp-schedule')     loadMySchedule();
-    else if (tabId === 'emp-certskills')   loadMyCertSkills();
+    if (tabId === 'emp-directory') loadEmployeeDirectory();
+    else if (tabId === 'admin-dashboard') loadAdminStats();
+    else if (tabId === 'admin-directory') loadAdminDirectory();
+    else if (tabId === 'emp-profile') loadMyProfile();
+    else if (tabId === 'emp-attendance') loadMyAttendance();
+    else if (tabId === 'emp-schedule') loadMySchedule();
+    else if (tabId === 'emp-certskills') loadMyCertSkills();
     else if (tabId === 'emp-skilltargets') loadMySkillTargets();
     else if (tabId === 'admin-attendance') loadAdminAttendanceOverview();
-    else if (tabId === 'admin-schedule')   loadAdminSchedules();
-    else if (tabId === 'emp-assets')       loadOfficeAssets();
+    else if (tabId === 'admin-schedule') loadAdminSchedules();
+    else if (tabId === 'emp-assets') loadOfficeAssets();
     else if (tabId === 'admin-skilltargets') loadAdminSkillTargetsOverview();
 }
 
@@ -382,7 +385,7 @@ async function handleLogin(e) {
             }),
         });
         state.token = data.access_token;
-        state.role  = data.role;
+        state.role = data.role;
         state.username = data.username;
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('role', data.role);
@@ -395,9 +398,9 @@ async function handleLogin(e) {
 }
 
 function logout() {
-    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => { });
     state.token = '';
-    state.role  = '';
+    state.role = '';
     state.username = '';
     state.myProfile = null;
     state.employeesList = [];
@@ -434,14 +437,14 @@ function setupAppInterface() {
 // PAGE 1: Employee Profile (existing logic preserved)
 // ─────────────────────────────────────────────
 function animateScoreCircle(targetScore) {
-    const scoreRing  = document.getElementById('score-ring-fill');
+    const scoreRing = document.getElementById('score-ring-fill');
     const scoreValue = document.getElementById('prof-score-value');
     if (!scoreRing || !scoreValue) return;
     const circumference = 251.2;
     scoreRing.style.strokeDasharray = `${circumference} ${circumference}`;
     scoreRing.style.strokeDashoffset = circumference;
     scoreValue.textContent = '0%';
-    
+
     // Default fallback styles
     scoreValue.style.removeProperty('color');
     scoreRing.style.removeProperty('stroke');
@@ -451,14 +454,14 @@ function animateScoreCircle(targetScore) {
     setTimeout(() => {
         const fullDuration = 600; // 0.6s to complete full circle
         const start = performance.now();
-        
+
         function animateToFull(now) {
             const progress = Math.min((now - start) / fullDuration, 1);
             const ease = 1 - Math.pow(1 - progress, 3); // Ease out cubic
-            
+
             scoreRing.style.strokeDashoffset = circumference - ease * circumference;
             scoreValue.textContent = Math.round(ease * 100) + '%';
-            
+
             if (progress < 1) {
                 requestAnimationFrame(animateToFull);
             } else {
@@ -483,15 +486,15 @@ function animateScoreCircle(targetScore) {
 
         const targetDuration = 800; // 0.8s to animate to final score
         const start = performance.now();
-        
+
         function step(now) {
             const progress = Math.min((now - start) / targetDuration, 1);
             const ease = 1 - Math.pow(1 - progress, 3);
-            
+
             const currentScore = 100 - ease * (100 - targetScore);
             scoreRing.style.strokeDashoffset = circumference - (currentScore / 100) * circumference;
             scoreValue.textContent = Math.round(currentScore) + '%';
-            
+
             if (progress < 1) {
                 requestAnimationFrame(step);
             } else {
@@ -520,9 +523,9 @@ function updateRealtimeOverallRating() {
 function parseExpToMonths(expStr) {
     if (!expStr) return 0;
     let months = 0;
-    const yearMatch  = expStr.match(/(\d+(?:\.\d+)?)\s*[Yy]ear/);
+    const yearMatch = expStr.match(/(\d+(?:\.\d+)?)\s*[Yy]ear/);
     const monthMatch = expStr.match(/(\d+(?:\.\d+)?)\s*[Mm]onth/);
-    if (yearMatch)  months += parseFloat(yearMatch[1]) * 12;
+    if (yearMatch) months += parseFloat(yearMatch[1]) * 12;
     if (monthMatch) months += parseFloat(monthMatch[1]);
     return Math.round(months);
 }
@@ -532,13 +535,13 @@ function monthsToString(totalMonths) {
     const years = Math.floor(totalMonths / 12);
     const months = totalMonths % 12;
     const parts = [];
-    if (years > 0)  parts.push(`${years} Year${years !== 1 ? 's' : ''}`);
+    if (years > 0) parts.push(`${years} Year${years !== 1 ? 's' : ''}`);
     if (months > 0) parts.push(`${months} Month${months !== 1 ? 's' : ''}`);
     return parts.join(', ');
 }
 
 function updateTotalExp() {
-    const prevVal   = document.getElementById('prof-prev-exp').value;
+    const prevVal = document.getElementById('prof-prev-exp').value;
     const arohakVal = document.getElementById('prof-arohak-exp').value;
     const total = parseExpToMonths(prevVal) + parseExpToMonths(arohakVal);
     const el = document.getElementById('prof-total-exp-text');
@@ -550,9 +553,9 @@ async function loadMyProfile() {
         const profile = await apiFetch('/api/employees/me');
         state.myProfile = profile;
         document.getElementById('user-display-name').textContent = profile.name;
-        document.getElementById('prof-emp-id').value   = profile.employee_id;
-        document.getElementById('prof-name').value     = profile.name || '';
-        document.getElementById('prof-email').value    = profile.email || '';
+        document.getElementById('prof-emp-id').value = profile.employee_id;
+        document.getElementById('prof-name').value = profile.name || '';
+        document.getElementById('prof-email').value = profile.email || '';
         document.getElementById('prof-project-name').value = profile.project_name || '';
         document.getElementById('prof-project-date').value = profile.project_assignment_date || '';
         animateScoreCircle(profile.score || 100);
@@ -565,12 +568,12 @@ async function loadMyProfile() {
         document.getElementById('prof-rating3').value = profile.third_rating || 0;
         document.getElementById('prof-work-rating').value = profile.work_exp_skills_rating || 0;
         updateRealtimeOverallRating();
-        document.getElementById('prof-prev-exp').value   = profile.previous_exp || '';
+        document.getElementById('prof-prev-exp').value = profile.previous_exp || '';
         document.getElementById('prof-arohak-exp').value = profile.arohak_exp || '';
         updateTotalExp();
         document.getElementById('prof-certifications').value = profile.certifications || '';
-        document.getElementById('prof-cert-start').value  = profile.cert_start_date || '';
-        document.getElementById('prof-cert-end').value    = profile.cert_end_date || '';
+        document.getElementById('prof-cert-start').value = profile.cert_start_date || '';
+        document.getElementById('prof-cert-end').value = profile.cert_end_date || '';
         document.getElementById('prof-cert-expiry').value = profile.expiry_date || '';
 
         const needsUpdate = checkSixMonthsUpdate(profile.last_updated);
@@ -590,20 +593,20 @@ async function loadMyProfile() {
 async function handleProfileUpdate(e) {
     e.preventDefault();
     const payload = {
-        name:  document.getElementById('prof-name').value,
+        name: document.getElementById('prof-name').value,
         email: document.getElementById('prof-email').value || null,
-        primary_skill:    document.getElementById('prof-skill1').value || null,
-        primary_rating:   parseFloat(document.getElementById('prof-rating1').value) || 0.0,
-        secondary_skill:  document.getElementById('prof-skill2').value || null,
+        primary_skill: document.getElementById('prof-skill1').value || null,
+        primary_rating: parseFloat(document.getElementById('prof-rating1').value) || 0.0,
+        secondary_skill: document.getElementById('prof-skill2').value || null,
         secondary_rating: parseFloat(document.getElementById('prof-rating2').value) || 0.0,
-        third_skill:      document.getElementById('prof-skill3').value || null,
-        third_rating:     parseFloat(document.getElementById('prof-rating3').value) || 0.0,
-        previous_exp:  document.getElementById('prof-prev-exp').value || null,
-        arohak_exp:    document.getElementById('prof-arohak-exp').value || null,
+        third_skill: document.getElementById('prof-skill3').value || null,
+        third_rating: parseFloat(document.getElementById('prof-rating3').value) || 0.0,
+        previous_exp: document.getElementById('prof-prev-exp').value || null,
+        arohak_exp: document.getElementById('prof-arohak-exp').value || null,
         certifications: document.getElementById('prof-certifications').value || null,
         cert_start_date: document.getElementById('prof-cert-start').value || null,
-        cert_end_date:   document.getElementById('prof-cert-end').value || null,
-        expiry_date:     document.getElementById('prof-cert-expiry').value || null,
+        cert_end_date: document.getElementById('prof-cert-end').value || null,
+        expiry_date: document.getElementById('prof-cert-expiry').value || null,
         project_name: document.getElementById('prof-project-name').value || null,
         project_assignment_date: document.getElementById('prof-project-date').value || null,
         work_exp_skills_rating: parseFloat(document.getElementById('prof-work-rating').value) || 0.0,
@@ -629,7 +632,7 @@ async function handleProfileUpdate(e) {
 // ─────────────────────────────────────────────
 async function loadEmployeeDirectory(skill = '', project = '', exp = '') {
     const grid = document.getElementById('directory-grid');
-    
+
     // Check if any filter is entered
     if (!skill.trim() && !project.trim() && !exp.trim()) {
         grid.innerHTML = `
@@ -648,9 +651,9 @@ async function loadEmployeeDirectory(skill = '', project = '', exp = '') {
     grid.innerHTML = '<div class="col-span-2 text-center" style="padding:40px;"><div class="spinner"></div>Loading directory...</div>';
     try {
         let query = `/api/employees?`;
-        if (skill)   query += `skill=${encodeURIComponent(skill)}&`;
+        if (skill) query += `skill=${encodeURIComponent(skill)}&`;
         if (project) query += `project=${encodeURIComponent(project)}&`;
-        if (exp)     query += `experience=${encodeURIComponent(exp)}&`;
+        if (exp) query += `experience=${encodeURIComponent(exp)}&`;
         const data = await apiFetch(query);
         state.employeesList = data;
         document.getElementById('directory-count').textContent = data.length;
@@ -719,17 +722,17 @@ function renderAssetsTable(employees) {
     if (!tableBody) return;
 
     tableBody.innerHTML = '';
-    
+
     // Apply filters from inputs
     const searchVal = document.getElementById('assets-search-name').value.toLowerCase().trim();
     const laptopVal = document.getElementById('assets-filter-laptop').value;
     const headsetVal = document.getElementById('assets-filter-headset').value;
 
     const filtered = employees.filter(emp => {
-        const matchesSearch = !searchVal || 
-            emp.name.toLowerCase().includes(searchVal) || 
+        const matchesSearch = !searchVal ||
+            emp.name.toLowerCase().includes(searchVal) ||
             emp.employee_id.toLowerCase().includes(searchVal);
-        
+
         const matchesLaptop = !laptopVal || emp.has_laptop === laptopVal;
         const matchesHeadset = !headsetVal || emp.has_headset === headsetVal;
 
@@ -746,11 +749,11 @@ function renderAssetsTable(employees) {
     filtered.forEach(emp => {
         const canEdit = (state.role === 'admin');
         const tr = document.createElement('tr');
-        
-        const laptopBadge = emp.has_laptop === 'Yes' 
+
+        const laptopBadge = emp.has_laptop === 'Yes'
             ? `<span class="badge badge-success" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;"><span class="material-icons-round" style="font-size:14px;">laptop</span> ${emp.laptop_details || 'Yes'}</span>`
             : `<span style="color:var(--text-muted);font-weight:bold;">—</span>`;
-            
+
         const headsetBadge = emp.has_headset === 'Yes'
             ? `<span class="badge badge-success" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;"><span class="material-icons-round" style="font-size:14px;">headphones</span> Yes</span>`
             : `<span style="color:var(--text-muted);font-weight:bold;">—</span>`;
@@ -761,13 +764,13 @@ function renderAssetsTable(employees) {
             <td>${laptopBadge}</td>
             <td>${headsetBadge}</td>
             <td>
-                ${canEdit 
-                    ? `<button class="btn btn-secondary btn-icon-only edit-assets-btn" data-id="${emp.employee_id}" title="Edit Assets"><span class="material-icons-round" style="font-size:16px;">edit</span></button>` 
-                    : `<span style="color:var(--text-muted);font-style:italic;font-size:0.85rem;">Read-only</span>`
-                }
+                ${canEdit
+                ? `<button class="btn btn-secondary btn-icon-only edit-assets-btn" data-id="${emp.employee_id}" title="Edit Assets"><span class="material-icons-round" style="font-size:16px;">edit</span></button>`
+                : `<span style="color:var(--text-muted);font-style:italic;font-size:0.85rem;">Read-only</span>`
+            }
             </td>
         `;
-        
+
         // Attach click listener to edit button
         const editBtn = tr.querySelector('.edit-assets-btn');
         if (editBtn) {
@@ -784,7 +787,7 @@ function openEditAssetsModal(emp) {
 
     document.getElementById('assets-edit-emp-id').value = emp.employee_id;
     document.getElementById('assets-edit-emp-name').value = emp.name;
-    
+
     const laptopSelect = document.getElementById('assets-edit-laptop');
     const laptopDetailsInput = document.getElementById('assets-edit-laptop-details');
     const headsetSelect = document.getElementById('assets-edit-headset');
@@ -825,10 +828,10 @@ async function handleAssetsEditSubmit(e) {
         });
         showToast('Assets updated successfully!', 'success');
         closeAllModals();
-        
+
         // Refresh local cache and list
         if (state.adminAllEmployees) {
-            state.adminAllEmployees = state.adminAllEmployees.map(emp => 
+            state.adminAllEmployees = state.adminAllEmployees.map(emp =>
                 emp.employee_id === empId ? { ...emp, ...payload } : emp
             );
             renderAssetsTable(state.adminAllEmployees);
@@ -848,7 +851,7 @@ async function loadAdminSkillTargetsOverview() {
     if (!tableBody) return;
 
     tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div>Loading skill targets sheet...</td></tr>';
-    
+
     const yearSelect = document.getElementById('admin-st-filter-year');
     const year = yearSelect ? yearSelect.value : new Date().getFullYear();
 
@@ -871,10 +874,10 @@ function renderAdminSkillTargetsOverview() {
 
     // Filter employees
     const filtered = (state.adminSkillTargetsOverview || []).filter(item => {
-        const matchesSearch = !searchVal || 
-            item.name.toLowerCase().includes(searchVal) || 
+        const matchesSearch = !searchVal ||
+            item.name.toLowerCase().includes(searchVal) ||
             item.employee_id.toLowerCase().includes(searchVal);
-        
+
         const matchesStatus = !statusVal || item.targets_status === statusVal;
 
         return matchesSearch && matchesStatus;
@@ -946,15 +949,15 @@ function renderAdminSkillTargetsOverview() {
                     </thead>
                     <tbody>
                         ${item.targets.map(t => {
-                            const startDate = t.created_at ? new Date(t.created_at).toLocaleDateString('en-GB') : '—';
-                            const targetEndDate = t.target_completion_date ? new Date(t.target_completion_date + 'T00:00:00').toLocaleDateString('en-GB') : '—';
-                            const finishedDate = t.status === 'Completed' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('en-GB') : '—';
-                            
-                            let statusClass = 'status-planned';
-                            if (t.status === 'In Progress') statusClass = 'status-inprogress';
-                            if (t.status === 'Completed') statusClass = 'status-completed';
+                const startDate = t.created_at ? new Date(t.created_at).toLocaleDateString('en-GB') : '—';
+                const targetEndDate = t.target_completion_date ? new Date(t.target_completion_date + 'T00:00:00').toLocaleDateString('en-GB') : '—';
+                const finishedDate = t.status === 'Completed' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('en-GB') : '—';
 
-                            return `
+                let statusClass = 'status-planned';
+                if (t.status === 'In Progress') statusClass = 'status-inprogress';
+                if (t.status === 'Completed') statusClass = 'status-completed';
+
+                return `
                                 <tr>
                                     <td><strong>${t.skill_name}</strong></td>
                                     <td><span class="skill-target-level-badge">${t.target_level || '—'}</span></td>
@@ -964,7 +967,7 @@ function renderAdminSkillTargetsOverview() {
                                     <td><span class="skill-target-status-badge ${statusClass}">${t.status}</span></td>
                                 </tr>
                             `;
-                        }).join('')}
+            }).join('')}
                     </tbody>
                 </table>
             `;
@@ -983,23 +986,23 @@ function renderAdminSkillTargetsOverview() {
 }
 
 // Global scope details toggle
-window.toggleTargetDetails = function(empId) {
+window.toggleTargetDetails = function (empId) {
     const row = document.getElementById(`st-details-row-${empId}`);
     const btn = document.getElementById(`st-toggle-${empId}`);
     if (!row || !btn) return;
 
     const isCollapsed = row.style.display === 'none';
     row.style.display = isCollapsed ? 'table-row' : 'none';
-    
+
     const icon = btn.querySelector('.material-icons-round');
     const label = btn.querySelector('span:not(.material-icons-round)');
-    
+
     if (isCollapsed) {
         icon.textContent = 'expand_less';
     } else {
         icon.textContent = 'expand_more';
     }
-    
+
     const targetCount = row.querySelectorAll('.admin-targets-subtable tbody tr').length;
     label.textContent = isCollapsed ? `Hide (${targetCount})` : `Show (${targetCount})`;
 };
@@ -1022,7 +1025,7 @@ function renderAttCalendar(containerId, records, isAdmin = false, empId = null) 
         cell.className = `att-day-cell ${statusClass(r.status)} ${isAdmin ? 'admin-editable' : ''}`;
         cell.title = r.notes ? `Note: ${r.notes}` : r.date;
         cell.innerHTML = `
-            <span class="att-day-date">${String(d.getDate()).padStart(2,'0')} ${d.toLocaleString('default',{month:'short'})}</span>
+            <span class="att-day-date">${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('default', { month: 'short' })}</span>
             <span class="att-day-weekday">${weekdays[d.getDay()]}</span>
             <span class="att-day-status">${r.status}</span>`;
         if (isAdmin && empId) {
@@ -1038,11 +1041,11 @@ async function loadMyAttendance() {
         state.myAttendance = data;
         // Stats
         const records = data.records || [];
-        document.getElementById('att-stat-p').textContent   = records.filter(r => r.status === 'P').length;
+        document.getElementById('att-stat-p').textContent = records.filter(r => r.status === 'P').length;
         document.getElementById('att-stat-wfh').textContent = records.filter(r => r.status === 'WFH').length;
-        document.getElementById('att-stat-ab').textContent  = records.filter(r => r.status === 'Ab').length;
-        document.getElementById('att-stat-h').textContent   = records.filter(r => r.status === 'H').length;
-        document.getElementById('att-stat-l').textContent   = records.filter(r => r.status === 'L').length;
+        document.getElementById('att-stat-ab').textContent = records.filter(r => r.status === 'Ab').length;
+        document.getElementById('att-stat-h').textContent = records.filter(r => r.status === 'H').length;
+        document.getElementById('att-stat-l').textContent = records.filter(r => r.status === 'L').length;
         renderAttCalendar('att-calendar-grid', records.slice(0, 30));
 
         // Load timesheet for the current week
@@ -1077,10 +1080,10 @@ function getWeekLabelText(weekStartStr) {
     const monday = new Date(weekStartStr + 'T00:00:00');
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    
+
     const options1 = { day: 'numeric', month: 'short' };
     const options2 = { day: 'numeric', month: 'short', year: 'numeric' };
-    
+
     return `This week, ${monday.toLocaleDateString('en-US', options1)} - ${sunday.toLocaleDateString('en-US', options2)}`;
 }
 
@@ -1088,7 +1091,7 @@ function updateTimesheetHeaders(weekStartStr) {
     const monday = new Date(weekStartStr + 'T00:00:00');
     const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
     const ids = ['ts-header-mon', 'ts-header-tue', 'ts-header-wed', 'ts-header-thu', 'ts-header-fri'];
-    
+
     for (let i = 0; i < 5; i++) {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
@@ -1110,20 +1113,20 @@ async function loadTimesheet(weekStartStr) {
             weekStartStr = monday.toISOString().split('T')[0];
         }
         state.currentTimesheetWeek = weekStartStr;
-        
+
         // Update label and picker
         const weekLabel = document.getElementById('ts-week-label');
         if (weekLabel) weekLabel.textContent = getWeekLabelText(weekStartStr);
-        
+
         const weekPicker = document.getElementById('ts-week-picker');
         if (weekPicker) weekPicker.value = weekStartStr;
-        
+
         updateTimesheetHeaders(weekStartStr);
-        
+
         // Fetch timesheet data
         const data = await apiFetch(`/api/timesheet/me?week_start=${weekStartStr}`);
         state.currentTimesheetData = data;
-        
+
         renderTimesheet(data);
     } catch (err) {
         showToast(`Failed to load timesheet: ${err.message}`, 'error');
@@ -1132,7 +1135,7 @@ async function loadTimesheet(weekStartStr) {
 
 function createTimesheetRowHtml(row, index, attendanceStatus) {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-    
+
     // Check if fields should be disabled due to attendance status (Ab, L, H)
     const disabledAttrs = days.map(day => {
         const status = attendanceStatus[day] || 'P';
@@ -1151,15 +1154,15 @@ function createTimesheetRowHtml(row, index, attendanceStatus) {
             status: 'P'
         };
     });
-    
+
     const rowTotal = days.reduce((sum, day, idx) => {
         const val = disabledAttrs[idx].disabled ? 0 : (row[day] || 0);
         return sum + val;
     }, 0);
-    
+
     const clientVal = row.client_project || '';
     const taskVal = row.task || '';
-    
+
     // Build day columns dynamically with status badges if non-working
     let dayCellsHtml = '';
     days.forEach((day, idx) => {
@@ -1175,7 +1178,7 @@ function createTimesheetRowHtml(row, index, attendanceStatus) {
             dayCellsHtml += `<td><input type="text" class="ts-day-input" data-day="${day}" placeholder="hh:mm" value="${val}"></td>`;
         }
     });
-    
+
     return `
         <tr class="ts-row" data-row-id="${row.id || ''}">
             <td>
@@ -1202,7 +1205,7 @@ function calculateTimesheetTotals() {
     const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
     const colTotals = { monday: 0, tuesday: 0, wednesday: 0, thursday: 0, friday: 0 };
     let grandTotal = 0;
-    
+
     rows.forEach(row => {
         let rowTotal = 0;
         dayKeys.forEach(day => {
@@ -1217,23 +1220,23 @@ function calculateTimesheetTotals() {
         const totalPill = row.querySelector('.ts-row-total-pill');
         if (totalPill) totalPill.textContent = formatMinutes(rowTotal);
     });
-    
+
     // Update footer
     dayKeys.forEach(day => {
-        const totalCell = document.getElementById(`ts-total-${day.substring(0,3)}`);
+        const totalCell = document.getElementById(`ts-total-${day.substring(0, 3)}`);
         if (totalCell) totalCell.textContent = formatMinutes(colTotals[day]);
     });
-    
+
     const grandTotalCell = document.getElementById('ts-total-weekly');
     if (grandTotalCell) grandTotalCell.textContent = formatMinutes(grandTotal);
-    
+
     // Validation
     const limitStatus = document.getElementById('ts-limit-status');
     const saveBtn = document.getElementById('ts-save-btn');
-    
+
     if (limitStatus) {
         limitStatus.textContent = `Total: ${formatMinutes(grandTotal)} / 45:00`;
-        
+
         if (grandTotal > 2700) {
             limitStatus.style.color = 'var(--danger)';
             grandTotalCell.style.color = 'var(--danger)';
@@ -1254,7 +1257,7 @@ function renderTimesheet(data) {
     const tbody = document.getElementById('timesheet-tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
-    
+
     let rows = data.rows || [];
     if (rows.length === 0) {
         const defaultProject = state.myProfile?.project_name || '';
@@ -1269,12 +1272,12 @@ function renderTimesheet(data) {
             friday: 0
         });
     }
-    
+
     rows.forEach((row, index) => {
         const trHtml = createTimesheetRowHtml(row, index, data.attendance);
         tbody.insertAdjacentHTML('beforeend', trHtml);
     });
-    
+
     // Bind deletes
     tbody.querySelectorAll('.ts-delete-row-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -1286,14 +1289,14 @@ function renderTimesheet(data) {
             }
         });
     });
-    
+
     calculateTimesheetTotals();
 }
 
 function addTimesheetRow() {
     const tbody = document.getElementById('timesheet-tbody');
     if (!tbody || !state.currentTimesheetData) return;
-    
+
     const defaultProject = state.myProfile?.project_name || '';
     const newRow = {
         id: null,
@@ -1305,17 +1308,17 @@ function addTimesheetRow() {
         thursday: 0,
         friday: 0
     };
-    
+
     const trHtml = createTimesheetRowHtml(newRow, tbody.children.length, state.currentTimesheetData.attendance);
     tbody.insertAdjacentHTML('beforeend', trHtml);
-    
+
     const newTr = tbody.lastElementChild;
     newTr.querySelector('.ts-delete-row-btn').addEventListener('click', (e) => {
         e.preventDefault();
         newTr.remove();
         calculateTimesheetTotals();
     });
-    
+
     newTr.querySelector('.ts-client-project')?.focus();
     calculateTimesheetTotals();
 }
@@ -1337,31 +1340,31 @@ async function copyPreviousWeekTimesheet() {
 
 async function saveTimesheet() {
     if (!state.currentTimesheetWeek) return;
-    
+
     const trs = document.querySelectorAll('.ts-row');
     const rows = [];
-    
+
     trs.forEach(tr => {
         const id = tr.getAttribute('data-row-id');
         const clientProject = tr.querySelector('.ts-client-project').value.trim();
         const task = tr.querySelector('.ts-task').value.trim();
-        
+
         const monVal = tr.querySelector('.ts-day-input[data-day="monday"]').value;
         const tueVal = tr.querySelector('.ts-day-input[data-day="tuesday"]').value;
         const wedVal = tr.querySelector('.ts-day-input[data-day="wednesday"]').value;
         const thuVal = tr.querySelector('.ts-day-input[data-day="thursday"]').value;
         const friVal = tr.querySelector('.ts-day-input[data-day="friday"]').value;
-        
+
         if (!clientProject && !task && !monVal && !tueVal && !wedVal && !thuVal && !friVal) {
             return;
         }
-        
+
         const monday = parseMinutes(monVal);
         const tuesday = parseMinutes(tueVal);
         const wednesday = parseMinutes(wedVal);
         const thursday = parseMinutes(thuVal);
         const friday = parseMinutes(friVal);
-        
+
         rows.push({
             id: id ? parseInt(id, 10) : null,
             client_project: clientProject || 'General',
@@ -1373,24 +1376,24 @@ async function saveTimesheet() {
             friday
         });
     });
-    
+
     const payload = {
         week_start: state.currentTimesheetWeek,
         rows
     };
-    
+
     try {
         const saveBtn = document.getElementById('ts-save-btn');
         if (saveBtn) {
             saveBtn.disabled = true;
             saveBtn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;margin:0;"></span> Saving...';
         }
-        
+
         const data = await apiFetch('/api/timesheet/me/save', {
             method: 'POST',
             body: JSON.stringify(payload)
         });
-        
+
         state.currentTimesheetData = data;
         renderTimesheet(data);
         showToast('Timesheet saved successfully!', 'success');
@@ -1427,21 +1430,21 @@ function handleWeekPickerChange(e) {
 
 // ── Shift Options (dropdown list) ────────────────────────────────────────────
 const SHIFT_OPTIONS = [
-    { value: '6 AM - 3 PM',   label: '6 AM – 3 PM  (Early Morning)' },
-    { value: '7 AM - 4 PM',   label: '7 AM – 4 PM  (Morning)' },
-    { value: '8 AM - 5 PM',   label: '8 AM – 5 PM  (Morning+)' },
-    { value: '9 AM - 6 PM',   label: '9 AM – 6 PM  (Day Shift)' },
-    { value: '10 AM - 7 PM',  label: '10 AM – 7 PM (Mid-Day)' },
-    { value: '11 AM - 8 PM',  label: '11 AM – 8 PM (Late Day)' },
-    { value: '12 PM - 9 PM',  label: '12 PM – 9 PM (Afternoon)' },
-    { value: '1 PM - 10 PM',  label: '1 PM – 10 PM  (Afternoon+)' },
-    { value: '2 PM - 11 PM',  label: '2 PM – 11 PM (Evening)' },
-    { value: '4 PM - 1 AM',   label: '4 PM – 1 AM  (Evening+)' },
-    { value: '6 PM - 3 AM',   label: '6 PM – 3 AM  (Night)' },
-    { value: '8 PM - 5 AM',   label: '8 PM – 5 AM  (Night+)' },
-    { value: '10 PM - 7 AM',  label: '10 PM – 7 AM (Night Shift)' },
-    { value: '11 PM - 8 AM',  label: '11 PM – 8 AM (Graveyard)' },
-    { value: 'Flexible',      label: 'Flexible Hours' },
+    { value: '6 AM - 3 PM', label: '6 AM – 3 PM  (Early Morning)' },
+    { value: '7 AM - 4 PM', label: '7 AM – 4 PM  (Morning)' },
+    { value: '8 AM - 5 PM', label: '8 AM – 5 PM  (Morning+)' },
+    { value: '9 AM - 6 PM', label: '9 AM – 6 PM  (Day Shift)' },
+    { value: '10 AM - 7 PM', label: '10 AM – 7 PM (Mid-Day)' },
+    { value: '11 AM - 8 PM', label: '11 AM – 8 PM (Late Day)' },
+    { value: '12 PM - 9 PM', label: '12 PM – 9 PM (Afternoon)' },
+    { value: '1 PM - 10 PM', label: '1 PM – 10 PM  (Afternoon+)' },
+    { value: '2 PM - 11 PM', label: '2 PM – 11 PM (Evening)' },
+    { value: '4 PM - 1 AM', label: '4 PM – 1 AM  (Evening+)' },
+    { value: '6 PM - 3 AM', label: '6 PM – 3 AM  (Night)' },
+    { value: '8 PM - 5 AM', label: '8 PM – 5 AM  (Night+)' },
+    { value: '10 PM - 7 AM', label: '10 PM – 7 AM (Night Shift)' },
+    { value: '11 PM - 8 AM', label: '11 PM – 8 AM (Graveyard)' },
+    { value: 'Flexible', label: 'Flexible Hours' },
 ];
 
 function generateShiftSelectHtml(dayKey, currentValue) {
@@ -1470,11 +1473,11 @@ function normalizeShiftValue(raw) {
 function formatActiveHours(hours) {
     if (!hours || hours.length === 0) return 'No shift hours selected';
     const sorted = [...hours].sort((a, b) => a - b);
-    
+
     let intervals = [];
     let start = sorted[0];
     let prev = sorted[0];
-    
+
     for (let i = 1; i < sorted.length; i++) {
         if (sorted[i] === prev + 1) {
             prev = sorted[i];
@@ -1485,7 +1488,7 @@ function formatActiveHours(hours) {
         }
     }
     intervals.push([start, prev]);
-    
+
     if (intervals.length > 1) {
         const first = intervals[0];
         const last = intervals[intervals.length - 1];
@@ -1494,7 +1497,7 @@ function formatActiveHours(hours) {
             intervals.pop();
         }
     }
-    
+
     return intervals.map(([s, e]) => {
         const formatHour = (h) => {
             const period = h >= 12 ? 'PM' : 'AM';
@@ -1508,7 +1511,7 @@ function formatActiveHours(hours) {
 
 function parseShiftStringToHours(shiftStr) {
     if (!shiftStr) return [];
-    
+
     let str = shiftStr.trim();
     try {
         const parsed = JSON.parse(str);
@@ -1519,11 +1522,11 @@ function parseShiftStringToHours(shiftStr) {
                 break;
             }
         }
-    } catch(e) {}
-    
+    } catch (e) { }
+
     const parts = str.split(',');
     const hours = new Set();
-    
+
     for (let part of parts) {
         const match = part.match(/(\d+)\s*(AM|PM)\s*[-–]\s*(\d+)\s*(AM|PM)/i);
         if (match) {
@@ -1531,12 +1534,12 @@ function parseShiftStringToHours(shiftStr) {
             const startPeriod = match[2].toUpperCase();
             let endH = parseInt(match[3]);
             const endPeriod = match[4].toUpperCase();
-            
+
             if (startPeriod === 'PM' && startH !== 12) startH += 12;
             if (startPeriod === 'AM' && startH === 12) startH = 0;
             if (endPeriod === 'PM' && endH !== 12) endH += 12;
             if (endPeriod === 'AM' && endH === 12) endH = 0;
-            
+
             if (startH <= endH) {
                 for (let h = startH; h < endH; h++) {
                     hours.add(h);
@@ -1551,7 +1554,7 @@ function parseShiftStringToHours(shiftStr) {
             }
         }
     }
-    
+
     if (hours.size === 0) {
         if (str.toLowerCase().includes('day shift')) {
             return [9, 10, 11, 12, 13, 14, 15, 16, 17];
@@ -1561,7 +1564,7 @@ function parseShiftStringToHours(shiftStr) {
             return [22, 23, 0, 1, 2, 3, 4, 5, 6];
         }
     }
-    
+
     return Array.from(hours);
 }
 
@@ -1591,11 +1594,11 @@ function renderScheduleViewCard(containerId, sched, empData) {
     if (!el) return;
 
     const days = [
-        { key: 'monday',    label: 'Monday',    tasksKey: 'monday_tasks' },
-        { key: 'tuesday',   label: 'Tuesday',   tasksKey: 'tuesday_tasks' },
+        { key: 'monday', label: 'Monday', tasksKey: 'monday_tasks' },
+        { key: 'tuesday', label: 'Tuesday', tasksKey: 'tuesday_tasks' },
         { key: 'wednesday', label: 'Wednesday', tasksKey: 'wednesday_tasks' },
-        { key: 'thursday',  label: 'Thursday',  tasksKey: 'thursday_tasks' },
-        { key: 'friday',    label: 'Friday',    tasksKey: 'friday_tasks' },
+        { key: 'thursday', label: 'Thursday', tasksKey: 'thursday_tasks' },
+        { key: 'friday', label: 'Friday', tasksKey: 'friday_tasks' },
     ];
     const project = empData ? (empData.project_name || 'Bench') : '—';
     const workingCount = days.filter(d => sched[d.key] === 'Working').length;
@@ -1634,12 +1637,12 @@ function renderScheduleViewCard(containerId, sched, empData) {
         <!-- Day cards (read-only) -->
         <div style="display:flex;flex-direction:column;gap:10px;">
             ${days.map(d => {
-                const isWorking = sched[d.key] === 'Working';
-                const taskValue = sched[d.tasksKey] || '';
-                const taskCount = taskValue ? taskValue.split('\n').filter(t => t.trim()).length : 0;
-                const rawShift  = shiftData[d.key] || '9 AM - 6 PM';
-                const shiftLabel = normalizeShiftValue(rawShift);
-                return `
+        const isWorking = sched[d.key] === 'Working';
+        const taskValue = sched[d.tasksKey] || '';
+        const taskCount = taskValue ? taskValue.split('\n').filter(t => t.trim()).length : 0;
+        const rawShift = shiftData[d.key] || '9 AM - 6 PM';
+        const shiftLabel = normalizeShiftValue(rawShift);
+        return `
                 <div class="sched-view-card ${isWorking ? 'sched-view-working' : 'sched-view-off'}">
                     <div class="sched-view-card-header">
                         <div style="display:flex;align-items:center;gap:12px;">
@@ -1665,7 +1668,7 @@ function renderScheduleViewCard(containerId, sched, empData) {
                                 </div>`).join('')}
                         </div>` : (isWorking ? `<div class="sched-view-tasks" style="color:var(--text-muted);font-size:0.82rem;font-style:italic;">No tasks set for this day.</div>` : '')}
                 </div>`;
-            }).join('')}
+    }).join('')}
         </div>
 
         ${sched.notes ? `
@@ -1689,11 +1692,11 @@ function renderScheduleEditForm(containerId, sched, empData) {
     if (!el) return;
 
     const days = [
-        { key: 'monday',    label: 'Monday',    tasksKey: 'monday_tasks' },
-        { key: 'tuesday',   label: 'Tuesday',   tasksKey: 'tuesday_tasks' },
+        { key: 'monday', label: 'Monday', tasksKey: 'monday_tasks' },
+        { key: 'tuesday', label: 'Tuesday', tasksKey: 'tuesday_tasks' },
         { key: 'wednesday', label: 'Wednesday', tasksKey: 'wednesday_tasks' },
-        { key: 'thursday',  label: 'Thursday',  tasksKey: 'thursday_tasks' },
-        { key: 'friday',    label: 'Friday',    tasksKey: 'friday_tasks' },
+        { key: 'thursday', label: 'Thursday', tasksKey: 'thursday_tasks' },
+        { key: 'friday', label: 'Friday', tasksKey: 'friday_tasks' },
     ];
     const project = empData ? (empData.project_name || 'Bench') : '—';
     const workingCount = days.filter(d => sched[d.key] === 'Working').length;
@@ -1738,11 +1741,11 @@ function renderScheduleEditForm(containerId, sched, empData) {
             <!-- Day cards -->
             <div style="display:flex;flex-direction:column;gap:12px;">
                 ${days.map(d => {
-                    const isWorking = sched[d.key] === 'Working';
-                    const taskValue = sched[d.tasksKey] || '';
-                    const taskCount = taskValue ? taskValue.split('\n').filter(t => t.trim()).length : 0;
-                    const dayShiftVal = shiftData[d.key];
-                    return `
+        const isWorking = sched[d.key] === 'Working';
+        const taskValue = sched[d.tasksKey] || '';
+        const taskCount = taskValue ? taskValue.split('\n').filter(t => t.trim()).length : 0;
+        const dayShiftVal = shiftData[d.key];
+        return `
                     <div class="schedule-day-card-new" data-day-card="${d.key}" style="
                         border: 1px solid ${isWorking ? 'rgba(37,99,235,0.3)' : 'var(--border-color)'};
                         border-radius: var(--radius-md);
@@ -1821,7 +1824,7 @@ function renderScheduleEditForm(containerId, sched, empData) {
                             </div>
                         </div>
                     </div>`;
-                }).join('')}
+    }).join('')}
             </div>
 
             <!-- Save / Cancel buttons -->
@@ -1841,11 +1844,11 @@ function renderScheduleEditForm(containerId, sched, empData) {
     // ── Expand/collapse on header click ──
     el.querySelectorAll('.sched-day-header').forEach(header => {
         header.addEventListener('click', () => {
-            const dayKey  = header.dataset.toggleDay;
-            const body    = el.querySelector(`[data-day-body="${dayKey}"]`);
+            const dayKey = header.dataset.toggleDay;
+            const body = el.querySelector(`[data-day-body="${dayKey}"]`);
             const chevron = header.querySelector('.day-chevron');
-            const isOpen  = body.style.display !== 'none';
-            body.style.display      = isOpen ? 'none' : 'block';
+            const isOpen = body.style.display !== 'none';
+            body.style.display = isOpen ? 'none' : 'block';
             chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
             if (!isOpen) body.querySelector('textarea')?.focus();
         });
@@ -1856,7 +1859,7 @@ function renderScheduleEditForm(containerId, sched, empData) {
         ta.addEventListener('input', () => {
             const counter = ta.closest('.day-task-body').querySelector('.task-char-count');
             if (counter) counter.textContent = `${ta.value.length} chars`;
-            const dayKey  = ta.dataset.dayTasks.replace('_tasks', '');
+            const dayKey = ta.dataset.dayTasks.replace('_tasks', '');
             const countEl = el.querySelector(`[data-day-card="${dayKey}"] .day-task-count`);
             const toggled = el.querySelector(`[data-day="${dayKey}"]`)?.checked;
             if (countEl && toggled) {
@@ -1869,46 +1872,46 @@ function renderScheduleEditForm(containerId, sched, empData) {
     // ── Working-day toggle switch ──
     el.querySelectorAll('.day-working-toggle').forEach(chk => {
         chk.addEventListener('change', e => {
-            const dayKey     = e.target.dataset.day;
-            const card       = el.querySelector(`[data-day-card="${dayKey}"]`);
-            const body       = el.querySelector(`[data-day-body="${dayKey}"]`);
-            const icon       = card.querySelector('.day-icon');
-            const circle     = card.querySelector('.day-icon-circle');
-            const chip       = card.querySelector('.day-status-chip');
-            const chevron    = card.querySelector('.day-chevron');
-            const countLbl   = card.querySelector('.day-task-count');
-            const ta         = card.querySelector('textarea');
-            const shiftRow   = body.querySelector(`#shift-select-row-${dayKey}`);
-            const on         = e.target.checked;
+            const dayKey = e.target.dataset.day;
+            const card = el.querySelector(`[data-day-card="${dayKey}"]`);
+            const body = el.querySelector(`[data-day-body="${dayKey}"]`);
+            const icon = card.querySelector('.day-icon');
+            const circle = card.querySelector('.day-icon-circle');
+            const chip = card.querySelector('.day-status-chip');
+            const chevron = card.querySelector('.day-chevron');
+            const countLbl = card.querySelector('.day-task-count');
+            const ta = card.querySelector('textarea');
+            const shiftRow = body.querySelector(`#shift-select-row-${dayKey}`);
+            const on = e.target.checked;
 
-            card.style.border     = on ? '1px solid rgba(37,99,235,0.3)' : '1px solid var(--border-color)';
-            card.style.background = on ? 'rgba(37,99,235,0.04)'          : 'rgba(255,255,255,0.01)';
-            icon.textContent        = on ? 'work'    : 'weekend';
-            icon.style.color        = on ? 'var(--accent-secondary)' : 'var(--text-muted)';
-            circle.style.background = on ? 'rgba(37,99,235,0.2)'    : 'rgba(255,255,255,0.05)';
-            chip.textContent       = on ? 'Working' : 'Off';
-            chip.style.background  = on ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)';
-            chip.style.color       = on ? '#10b981' : 'var(--text-muted)';
+            card.style.border = on ? '1px solid rgba(37,99,235,0.3)' : '1px solid var(--border-color)';
+            card.style.background = on ? 'rgba(37,99,235,0.04)' : 'rgba(255,255,255,0.01)';
+            icon.textContent = on ? 'work' : 'weekend';
+            icon.style.color = on ? 'var(--accent-secondary)' : 'var(--text-muted)';
+            circle.style.background = on ? 'rgba(37,99,235,0.2)' : 'rgba(255,255,255,0.05)';
+            chip.textContent = on ? 'Working' : 'Off';
+            chip.style.background = on ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.05)';
+            chip.style.color = on ? '#10b981' : 'var(--text-muted)';
             chip.style.borderColor = on ? 'rgba(16,185,129,0.25)' : 'var(--border-color)';
-            chevron.style.opacity  = on ? '1' : '0.4';
+            chevron.style.opacity = on ? '1' : '0.4';
 
             if (on) {
                 ta.removeAttribute('disabled');
                 if (shiftRow) { shiftRow.style.pointerEvents = 'auto'; shiftRow.style.opacity = '1'; }
-                countLbl.textContent    = 'No tasks yet';
-                body.style.display      = 'block';
+                countLbl.textContent = 'No tasks yet';
+                body.style.display = 'block';
                 chevron.style.transform = 'rotate(180deg)';
                 ta.focus();
             } else {
                 ta.setAttribute('disabled', 'true');
                 if (shiftRow) { shiftRow.style.pointerEvents = 'none'; shiftRow.style.opacity = '0.4'; }
-                countLbl.textContent    = 'Day off';
-                body.style.display      = 'none';
+                countLbl.textContent = 'Day off';
+                body.style.display = 'none';
                 chevron.style.transform = 'rotate(0deg)';
             }
 
             const totalOn = [...el.querySelectorAll('.day-working-toggle')].filter(c => c.checked).length;
-            const wBadge  = document.getElementById('working-count-badge');
+            const wBadge = document.getElementById('working-count-badge');
             if (wBadge) wBadge.textContent = `${totalOn} / 5`;
         });
     });
@@ -1932,17 +1935,17 @@ function renderScheduleEditForm(containerId, sched, empData) {
         });
 
         const payload = {
-            monday:          el.querySelector('[data-day="monday"]').checked    ? 'Working' : 'Off',
-            tuesday:         el.querySelector('[data-day="tuesday"]').checked   ? 'Working' : 'Off',
-            wednesday:       el.querySelector('[data-day="wednesday"]').checked ? 'Working' : 'Off',
-            thursday:        el.querySelector('[data-day="thursday"]').checked  ? 'Working' : 'Off',
-            friday:          el.querySelector('[data-day="friday"]').checked    ? 'Working' : 'Off',
-            shift:           JSON.stringify(shiftPayload),
-            monday_tasks:    el.querySelector('[data-day-tasks="monday_tasks"]').value,
-            tuesday_tasks:   el.querySelector('[data-day-tasks="tuesday_tasks"]').value,
+            monday: el.querySelector('[data-day="monday"]').checked ? 'Working' : 'Off',
+            tuesday: el.querySelector('[data-day="tuesday"]').checked ? 'Working' : 'Off',
+            wednesday: el.querySelector('[data-day="wednesday"]').checked ? 'Working' : 'Off',
+            thursday: el.querySelector('[data-day="thursday"]').checked ? 'Working' : 'Off',
+            friday: el.querySelector('[data-day="friday"]').checked ? 'Working' : 'Off',
+            shift: JSON.stringify(shiftPayload),
+            monday_tasks: el.querySelector('[data-day-tasks="monday_tasks"]').value,
+            tuesday_tasks: el.querySelector('[data-day-tasks="tuesday_tasks"]').value,
             wednesday_tasks: el.querySelector('[data-day-tasks="wednesday_tasks"]').value,
-            thursday_tasks:  el.querySelector('[data-day-tasks="thursday_tasks"]').value,
-            friday_tasks:    el.querySelector('[data-day-tasks="friday_tasks"]').value
+            thursday_tasks: el.querySelector('[data-day-tasks="thursday_tasks"]').value,
+            friday_tasks: el.querySelector('[data-day-tasks="friday_tasks"]').value
         };
 
         try {
@@ -1985,9 +1988,9 @@ function renderCertSkills(containerId, data) {
     if (!el) return;
 
     const skills = [
-        { name: data.primary_skill,   rating: data.primary_rating,   label: 'Primary Skill' },
+        { name: data.primary_skill, rating: data.primary_rating, label: 'Primary Skill' },
         { name: data.secondary_skill, rating: data.secondary_rating, label: 'Secondary Skill' },
-        { name: data.third_skill,     rating: data.third_rating,     label: 'Third Skill' },
+        { name: data.third_skill, rating: data.third_rating, label: 'Third Skill' },
         { name: 'Work Experience Alignment', rating: data.work_exp_skills_rating, label: 'Work Exp Skill' },
     ].filter(s => s.name);
 
@@ -2004,20 +2007,20 @@ function renderCertSkills(containerId, data) {
                 </div>
                 <div class="panel-body">
                     ${skills.length === 0
-                        ? '<p style="color:var(--text-muted);">No skills listed yet. Update your profile to add skills.</p>'
-                        : skills.map(s => `
+            ? '<p style="color:var(--text-muted);">No skills listed yet. Update your profile to add skills.</p>'
+            : skills.map(s => `
                         <div class="skill-rating-bar-row">
                             <span class="skill-rating-bar-name">${s.name} <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;">(${s.label})</span></span>
                             <div class="skill-rating-bar-level">
-                                <div class="skill-rating-bar-fill" style="width:${Math.round((s.rating/5)*100)}%"></div>
+                                <div class="skill-rating-bar-fill" style="width:${Math.round((s.rating / 5) * 100)}%"></div>
                             </div>
-                            <span class="skill-rating-num">${(s.rating||0).toFixed(1)}</span>
+                            <span class="skill-rating-num">${(s.rating || 0).toFixed(1)}</span>
                         </div>`).join('')}
                     <div style="margin-top:20px;padding:14px 16px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;">
                         <span style="font-size:0.85rem;font-weight:600;color:var(--text-secondary);">Overall Rating</span>
                         <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="display:flex;gap:2px;color:var(--warning);">${getStarsHtml(data.overall_rating||0)}</div>
-                            <span style="font-weight:700;color:var(--accent-secondary);">${(data.overall_rating||0).toFixed(2)} / 5</span>
+                            <div style="display:flex;gap:2px;color:var(--warning);">${getStarsHtml(data.overall_rating || 0)}</div>
+                            <span style="font-weight:700;color:var(--accent-secondary);">${(data.overall_rating || 0).toFixed(2)} / 5</span>
                         </div>
                     </div>
                 </div>
@@ -2032,8 +2035,8 @@ function renderCertSkills(containerId, data) {
                     </div>
                     <div class="panel-body">
                         ${certList.length === 0
-                            ? '<p style="color:var(--text-muted);">No certifications on record.</p>'
-                            : `<div class="cert-list">${certList.map(c => `
+            ? '<p style="color:var(--text-muted);">No certifications on record.</p>'
+            : `<div class="cert-list">${certList.map(c => `
                                 <div class="cert-item">
                                     <span class="material-icons-round">verified</span>
                                     <div>
@@ -2283,7 +2286,7 @@ async function loadAdminStats() {
 // ─────────────────────────────────────────────
 async function loadAdminDirectory(skill = '', project = '', exp = '', rating = '') {
     const tbody = document.getElementById('admin-employees-tbody');
-    
+
     // Check if any filter is entered
     if (!skill.trim() && !project.trim() && !exp.trim() && !rating.trim()) {
         tbody.innerHTML = `
@@ -2305,10 +2308,10 @@ async function loadAdminDirectory(skill = '', project = '', exp = '', rating = '
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;"><div class="spinner"></div>Loading…</td></tr>';
     try {
         let q = `/api/employees?`;
-        if (skill)   q += `skill=${encodeURIComponent(skill)}&`;
+        if (skill) q += `skill=${encodeURIComponent(skill)}&`;
         if (project) q += `project=${encodeURIComponent(project)}&`;
-        if (exp)     q += `experience=${encodeURIComponent(exp)}&`;
-        if (rating)  q += `min_rating=${encodeURIComponent(rating)}&`;
+        if (exp) q += `experience=${encodeURIComponent(exp)}&`;
+        if (rating) q += `min_rating=${encodeURIComponent(rating)}&`;
         const data = await apiFetch(q);
         state.employeesList = data;
         tbody.innerHTML = '';
@@ -2349,15 +2352,15 @@ async function loadAdminDirectory(skill = '', project = '', exp = '', rating = '
 
 function exportDirectoryCSV() {
     if (state.employeesList.length === 0) { showToast('No records to export.', 'warning'); return; }
-    const headers = ['Employee ID','Name','Email','Primary Skill','Primary Rating','Secondary Skill','Secondary Rating','Third Skill','Third Rating','Previous Exp','Arohak Exp','Certifications','Cert Start','Cert End','Expiry Date','Project Name','Project Assignment Date','Work Rating','Overall Rating','Score'];
+    const headers = ['Employee ID', 'Name', 'Email', 'Primary Skill', 'Primary Rating', 'Secondary Skill', 'Secondary Rating', 'Third Skill', 'Third Rating', 'Previous Exp', 'Arohak Exp', 'Certifications', 'Cert Start', 'Cert End', 'Expiry Date', 'Project Name', 'Project Assignment Date', 'Work Rating', 'Overall Rating', 'Score'];
     const rows = [headers.join(',')];
     state.employeesList.forEach(emp => {
-        const v = (s) => `"${(s||'').replace(/"/g,'""')}"`;
-        rows.push([emp.employee_id,v(emp.name),emp.email||'',v(emp.primary_skill),emp.primary_rating||0,v(emp.secondary_skill),emp.secondary_rating||0,v(emp.third_skill),emp.third_rating||0,v(emp.previous_exp),v(emp.arohak_exp),v(emp.certifications),emp.cert_start_date||'',emp.cert_end_date||'',emp.expiry_date||'',v(emp.project_name),emp.project_assignment_date||'',emp.work_exp_skills_rating||0,emp.overall_rating||0,emp.score||0].join(','));
+        const v = (s) => `"${(s || '').replace(/"/g, '""')}"`;
+        rows.push([emp.employee_id, v(emp.name), emp.email || '', v(emp.primary_skill), emp.primary_rating || 0, v(emp.secondary_skill), emp.secondary_rating || 0, v(emp.third_skill), emp.third_rating || 0, v(emp.previous_exp), v(emp.arohak_exp), v(emp.certifications), emp.cert_start_date || '', emp.cert_end_date || '', emp.expiry_date || '', v(emp.project_name), emp.project_assignment_date || '', emp.work_exp_skills_rating || 0, emp.overall_rating || 0, emp.score || 0].join(','));
     });
     const link = document.createElement('a');
     link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURI(rows.join('\n')));
-    link.setAttribute('download', `Arohak_Employees_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `Arohak_Employees_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -2421,19 +2424,19 @@ async function viewAdminAttDetail(empId, empName) {
 
 function openAdminAttModal(empId, date = '', status = 'P', notes = '') {
     document.getElementById('admin-att-emp-id').value = empId;
-    document.getElementById('admin-att-date').value  = date || new Date().toISOString().slice(0, 10);
+    document.getElementById('admin-att-date').value = date || new Date().toISOString().slice(0, 10);
     document.getElementById('admin-att-status').value = status || 'P';
-    document.getElementById('admin-att-notes').value  = notes;
+    document.getElementById('admin-att-notes').value = notes;
     document.getElementById('admin-att-modal').classList.add('active');
 }
 
 async function handleAdminAttSubmit(e) {
     e.preventDefault();
-    const empId  = document.getElementById('admin-att-emp-id').value;
+    const empId = document.getElementById('admin-att-emp-id').value;
     const payload = {
-        date:   document.getElementById('admin-att-date').value,
+        date: document.getElementById('admin-att-date').value,
         status: document.getElementById('admin-att-status').value,
-        notes:  document.getElementById('admin-att-notes').value || null,
+        notes: document.getElementById('admin-att-notes').value || null,
         source: 'manual',
     };
     try {
@@ -2474,8 +2477,8 @@ async function loadAdminSchedules(nameFilter = '', projectFilter = '') {
             apiFetch(`/api/schedule/${emp.employee_id}`).catch(() => null)
         );
         const schedules = await Promise.all(schedulePromises);
-        const days = ['monday','tuesday','wednesday','thursday','friday'];
-        const dayLabels = ['Mon','Tue','Wed','Thu','Fri'];
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+        const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
         grid.innerHTML = '';
         employees.forEach((emp, i) => {
             const sched = schedules[i];
@@ -2535,7 +2538,7 @@ async function openAdminSchedModal(empId, empName) {
             const ampm = h >= 12 ? 'PM' : 'AM';
             const displayH = h === 0 ? 12 : (h > 12 ? h - 12 : h);
             const padHour = String(displayH).padStart(2, '0');
-            
+
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = `hour-toggle-btn ${activeClass}`;
@@ -2566,13 +2569,13 @@ async function handleAdminSchedSubmit(e) {
     const empId = document.getElementById('admin-sched-emp-id').value;
     const payload = {
         manager_name: document.getElementById('admin-sched-manager').value || null,
-        monday:    document.getElementById('sched-mon').checked ? 'Working' : 'Off',
-        tuesday:   document.getElementById('sched-tue').checked ? 'Working' : 'Off',
+        monday: document.getElementById('sched-mon').checked ? 'Working' : 'Off',
+        tuesday: document.getElementById('sched-tue').checked ? 'Working' : 'Off',
         wednesday: document.getElementById('sched-wed').checked ? 'Working' : 'Off',
-        thursday:  document.getElementById('sched-thu').checked ? 'Working' : 'Off',
-        friday:    document.getElementById('sched-fri').checked ? 'Working' : 'Off',
-        shift:     document.getElementById('admin-sched-shift-hidden').value || 'Day Shift',
-        notes:     document.getElementById('admin-sched-notes').value || null,
+        thursday: document.getElementById('sched-thu').checked ? 'Working' : 'Off',
+        friday: document.getElementById('sched-fri').checked ? 'Working' : 'Off',
+        shift: document.getElementById('admin-sched-shift-hidden').value || 'Day Shift',
+        notes: document.getElementById('admin-sched-notes').value || null,
     };
     try {
         await apiFetch(`/api/schedule/${empId}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -2593,7 +2596,7 @@ async function handleAdminSchedSubmit(e) {
 async function openEmployeeDetailsModal(employeeId) {
     const modal = document.getElementById('detail-modal');
     const title = document.getElementById('modal-title');
-    const body  = document.getElementById('modal-body-content');
+    const body = document.getElementById('modal-body-content');
     title.textContent = 'Loading profile details...';
     body.innerHTML = '<div class="text-center" style="padding:40px;"><div class="spinner"></div>Loading profile...</div>';
     modal.classList.add('active');
@@ -2691,8 +2694,8 @@ async function openEmployeeDetailsModal(employeeId) {
 // ─────────────────────────────────────────────
 async function handlePasswordChange(e) {
     e.preventDefault();
-    const cur  = document.getElementById('settings-pass-current').value;
-    const nw   = document.getElementById('settings-pass-new').value;
+    const cur = document.getElementById('settings-pass-current').value;
+    const nw = document.getElementById('settings-pass-new').value;
     const conf = document.getElementById('settings-pass-confirm').value;
     if (nw !== conf) { showToast('New passwords do not match.', 'error'); return; }
     try {
@@ -2749,10 +2752,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Profile
-    ['prof-rating1','prof-rating2','prof-rating3','prof-work-rating'].forEach(id => {
+    ['prof-rating1', 'prof-rating2', 'prof-rating3', 'prof-work-rating'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateRealtimeOverallRating);
     });
-    ['prof-prev-exp','prof-arohak-exp'].forEach(id => {
+    ['prof-prev-exp', 'prof-arohak-exp'].forEach(id => {
         document.getElementById(id).addEventListener('input', updateTotalExp);
     });
     document.getElementById('profile-form').addEventListener('submit', handleProfileUpdate);
@@ -2770,34 +2773,34 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const empId = state.myProfile ? state.myProfile.employee_id : null;
             if (!empId) {
                 showToast("Cannot upload: employee ID is missing.", "error");
                 return;
             }
-            
+
             const formData = new FormData();
             formData.append('file', file);
-            
+
             try {
                 showToast("Uploading resume...", "info");
                 const headers = {};
                 if (state.token) {
                     headers['Authorization'] = `Bearer ${state.token}`;
                 }
-                
+
                 const response = await fetch(`/api/employees/${empId}/resume/upload`, {
                     method: 'POST',
                     headers: headers,
                     body: formData
                 });
-                
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ detail: 'Upload failed' }));
                     throw new Error(errorData.detail || "Upload failed");
                 }
-                
+
                 await response.json();
                 showToast("Resume uploaded successfully!", "success");
                 await loadMyProfile();
@@ -2830,9 +2833,9 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteBtn.addEventListener('click', async () => {
             const empId = state.myProfile ? state.myProfile.employee_id : null;
             if (!empId) return;
-            
+
             if (!confirm("Are you sure you want to delete your uploaded custom resume?")) return;
-            
+
             try {
                 await apiFetch(`/api/employees/${empId}/resume`, { method: 'DELETE' });
                 showToast("Resume deleted successfully.", "success");
@@ -2905,7 +2908,7 @@ document.addEventListener('DOMContentLoaded', () => {
         );
     });
     document.getElementById('admin-clear-btn').addEventListener('click', () => {
-        ['admin-search-skill','admin-search-project','admin-search-exp','admin-search-rating'].forEach(id => { document.getElementById(id).value = ''; });
+        ['admin-search-skill', 'admin-search-project', 'admin-search-exp', 'admin-search-rating'].forEach(id => { document.getElementById(id).value = ''; });
         loadAdminDirectory();
     });
     document.getElementById('admin-export-btn').addEventListener('click', exportDirectoryCSV);
@@ -2989,7 +2992,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('ts-add-row-btn')?.addEventListener('click', addTimesheetRow);
     document.getElementById('ts-copy-prev-btn')?.addEventListener('click', copyPreviousWeekTimesheet);
     document.getElementById('ts-save-btn')?.addEventListener('click', saveTimesheet);
-    
+
     document.getElementById('timesheet-tbody')?.addEventListener('input', (e) => {
         if (e.target.classList.contains('ts-day-input')) {
             calculateTimesheetTotals();
