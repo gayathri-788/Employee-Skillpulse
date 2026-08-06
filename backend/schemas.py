@@ -19,6 +19,7 @@ class Token(BaseModel):
 # Employee schemas
 # ─────────────────────────────────────────────
 class EmployeeBase(BaseModel):
+    
     employee_id: str
     name: str
     email: Optional[str] = None
