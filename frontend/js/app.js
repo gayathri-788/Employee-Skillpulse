@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────
 // Global State
 // ─────────────────────────────────────────────
-const API_BASE_URL = "https://employee-skillpulse.onrender.com/";
+const API_BASE_URL = "";
 const state = {
     token: localStorage.getItem('token') || '',
     role: localStorage.getItem('role') || '',
@@ -2728,18 +2728,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.token) {
         setupAppInterface();
     } else {
-        fetch('/api/employees/me').then(res => {
-            if (res.ok) {
-                return res.json().then(profile => {
-                    state.role = 'employee';
-                    state.username = profile.employee_id.toLowerCase();
-                    state.myProfile = profile;
-                    localStorage.setItem('role', 'employee');
-                    localStorage.setItem('username', state.username);
-                    setupAppInterface();
-                });
-            }
-        }).catch(() => logout());
+        logout();
     }
 
     // Auth
