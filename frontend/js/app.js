@@ -41,14 +41,22 @@ async function apiFetch(endpoint, options = {}) {
         ...options,
         headers
     });
-    if (response.status === 401) {
+    if (response.status === 401 && !endpoint.includes('/api/auth/login')) {
         showToast('Session expired. Please log in again.', 'warning');
         logout();
         throw new Error('Unauthorized');
     }
     if (!response.ok) {
         const err = await response.json().catch(() => ({ detail: 'An error occurred' }));
-        throw new Error(err.detail || 'API request failed');
+        let msg = 'API request failed';
+        if (typeof err.detail === 'string') {
+            msg = err.detail;
+        } else if (Array.isArray(err.detail) && err.detail.length > 0) {
+            msg = err.detail.map(e => e.msg || JSON.stringify(e)).join(', ');
+        } else if (err.message) {
+            msg = err.message;
+        }
+        throw new Error(msg);
     }
     return response.json();
 }
