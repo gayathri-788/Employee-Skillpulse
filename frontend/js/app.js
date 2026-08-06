@@ -38,6 +38,7 @@ async function apiFetch(endpoint, options = {}) {
     if (response.status === 401) {
         showToast('Session expired. Please log in again.', 'warning');
         logout();
+        
         throw new Error('Unauthorized');
     }
     if (!response.ok) {

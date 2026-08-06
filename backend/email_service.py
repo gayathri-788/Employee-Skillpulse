@@ -21,7 +21,7 @@ To ensure your skills, certifications, and project details are accurate and up t
 Your current profile score: {score}%
 (Keeping your profile updated helps maintain a high Score.)
 
-Portal Link: http://127.0.0.1:8000
+Portal Link: https://employee-skillpulse.onrender.com/  
 
 Thank you,
 Arohak Admin Team
