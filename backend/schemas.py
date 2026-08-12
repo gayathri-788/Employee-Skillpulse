@@ -23,6 +23,8 @@ class EmployeeBase(BaseModel):
     employee_id: str
     name: str
     email: Optional[str] = None
+    contact_number: Optional[str] = None
+    joining_date: Optional[str] = None
     
     primary_skill: Optional[str] = None
     primary_rating: Optional[float] = 0.0
@@ -33,6 +35,7 @@ class EmployeeBase(BaseModel):
     
     previous_exp: Optional[str] = None
     arohak_exp: Optional[str] = None
+    total_exp: Optional[str] = None
     
     certifications: Optional[str] = None
     cert_start_date: Optional[str] = None
@@ -41,11 +44,13 @@ class EmployeeBase(BaseModel):
     
     project_name: Optional[str] = None
     project_assignment_date: Optional[str] = None
+    project_end_date: Optional[str] = None
     
     # Assets Info
     has_laptop: Optional[str] = "No"
     laptop_details: Optional[str] = None
     has_headset: Optional[str] = "No"
+    headset_details: Optional[str] = None
     
     work_exp_skills_rating: Optional[float] = 0.0
     overall_rating: Optional[float] = 0.0
@@ -54,6 +59,9 @@ class EmployeeBase(BaseModel):
 class EmployeeUpdate(BaseModel):
     name: str
     email: Optional[str] = None
+    contact_number: Optional[str] = None
+    joining_date: Optional[str] = None
+    total_exp: Optional[str] = None
     
     primary_skill: Optional[str] = None
     primary_rating: Optional[float] = Field(0.0, ge=0.0, le=5.0)
@@ -72,11 +80,13 @@ class EmployeeUpdate(BaseModel):
     
     project_name: Optional[str] = None
     project_assignment_date: Optional[str] = None
+    project_end_date: Optional[str] = None
     
     # Assets Info
     has_laptop: Optional[str] = "No"
     laptop_details: Optional[str] = None
     has_headset: Optional[str] = "No"
+    headset_details: Optional[str] = None
     
     work_exp_skills_rating: Optional[float] = Field(0.0, ge=0.0, le=5.0)
     overall_rating: Optional[float] = Field(0.0, ge=0.0, le=5.0)
@@ -116,6 +126,7 @@ class AssetUpdate(BaseModel):
     has_laptop: str
     laptop_details: Optional[str] = None
     has_headset: str
+    headset_details: Optional[str] = None
 
 class PasswordChange(BaseModel):
     current_password: str
@@ -294,8 +305,33 @@ class TimesheetSaveRequest(BaseModel):
 
 class TimesheetResponse(BaseModel):
     week_start: str
+    status: str = "Draft"
+    released_at: Optional[datetime] = None
+    can_edit: bool = True
+    is_past_month: bool = False
     rows: List[TimesheetRowSchema]
     attendance: dict  # e.g. {"monday": "P", "tuesday": "Ab", ...}
+
+
+class TimesheetReviewRequest(BaseModel):
+    week_start: str
+    action: str  # "accept" or "reject"
+    notes: Optional[str] = None
+
+
+class AdminTimesheetListItem(BaseModel):
+    employee_id: str
+    name: str
+    project_name: Optional[str] = None
+    week_start: str
+    status: str
+    released_at: Optional[datetime] = None
+    total_minutes: int = 0
+    total_formatted: str = "0:00"
+    can_accept: bool = False
+    can_reject: bool = False
+    is_past_month: bool = False
+
 
 
 class CustomResumeRequest(BaseModel):

@@ -11,7 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css?v=33.0">
+    <!-- Chart.js for Admin Analytics Pie Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Background glow design elements -->
@@ -73,7 +75,10 @@
                 </div>
                 <div class="header-actions">
                     <div class="user-info">
-                        <span class="material-icons-round avatar-icon">account_circle</span>
+                        <div id="header-avatar-circle" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--bg-tertiary); border: 2px solid var(--border-color); flex-shrink: 0;">
+                            <span id="header-avatar-icon" class="material-icons-round avatar-icon">account_circle</span>
+                            <img id="header-avatar-img" src="" alt="Avatar" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
                         <div class="user-text">
                             <span id="user-display-name" class="user-name">Loading...</span>
                             <span id="user-display-id" class="user-id">AT0000</span>
@@ -118,7 +123,11 @@
                             </button>
                             <button class="nav-link" data-tab="emp-skilltargets">
                                 <span class="material-icons-round">flag</span>
-                                <span>Yearly Skill Targets</span>
+                                <span>Employee Growth Targets</span>
+                            </button>
+                            <button class="nav-link" data-tab="emp-timesheet">
+                                <span class="material-icons-round">schedule</span>
+                                <span>Weekly Timesheet</span>
                             </button>
                         </div>
                         <!-- Admin Navigation -->
@@ -142,7 +151,19 @@
                             </button>
                             <button class="nav-link" data-tab="admin-skilltargets">
                                 <span class="material-icons-round">track_changes</span>
-                                <span>Skill Targets Sheet</span>
+                                <span>Employee Growth Targets</span>
+                            </button>
+                            <button class="nav-link" data-tab="admin-timesheets">
+                                <span class="material-icons-round">rule</span>
+                                <span>Timesheet Approvals</span>
+                            </button>
+                            <button class="nav-link" data-tab="admin-emp-timesheets">
+                                <span class="material-icons-round">view_timeline</span>
+                                <span>Employee Timesheets</span>
+                            </button>
+                            <button class="nav-link" data-tab="admin-projects">
+                                <span class="material-icons-round">account_tree</span>
+                                <span>Projects &amp; Teams</span>
                             </button>
                              <!-- Admin weekly schedule removed -->
                         </div>
@@ -179,7 +200,7 @@
                                 <p>View and keep your skills, certifications, and experience up to date.</p>
                             </div>
                             <div class="page-header-badges">
-                                <div class="score-circle-container">
+                                <div class="score-circle-container" style="transform: scale(0.75); transform-origin: right center;">
                                     <svg class="score-ring" width="100" height="100">
                                         <defs>
                                             <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -209,26 +230,56 @@
                                     <span class="material-icons-round">badge</span>
                                     <h2>Basic &amp; Project Information</h2>
                                 </div>
-                                <div class="panel-body grid-2">
-                                    <div class="form-group">
-                                        <label for="prof-emp-id">Employee ID</label>
-                                        <input type="text" id="prof-emp-id" readonly disabled class="input-disabled">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="prof-name">Full Name</label>
-                                        <input type="text" id="prof-name" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="prof-email">Email Address</label>
-                                        <input type="email" id="prof-email" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="prof-project-name">Assigned Project Name</label>
-                                        <input type="text" id="prof-project-name" placeholder="e.g. ASPAC EDI">
-                                    </div>
-                                    <div class="form-group col-span-2">
-                                        <label for="prof-project-date">Date of Project Assignment</label>
-                                        <input type="date" id="prof-project-date">
+                                <div class="panel-body">
+                                    <div class="grid-2">
+                                        <!-- Profile Photo Upload Circle (Centered & Enlarged, opens options popup on click) -->
+                                        <div style="grid-column: 1 / -1; display: flex; justify-content: center; margin-bottom: 16px;">
+                                            <div id="profile-avatar-clickable" onclick="openProfilePhotoOptionsModal()" style="position: relative; width: 128px; height: 128px; cursor: pointer;" title="Click for profile photo options">
+                                                <div id="profile-avatar-preview-box" style="width: 100%; height: 100%; border-radius: 50%; background: var(--bg-tertiary); border: 4px solid var(--accent-primary); display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: var(--shadow-md);">
+                                                    <span id="profile-avatar-icon" class="material-icons-round" style="font-size: 5rem; color: var(--accent-secondary);">account_circle</span>
+                                                    <img id="profile-avatar-img" src="" alt="Profile Photo" class="hidden" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                                <!-- Camera upload badge (bottom right) -->
+                                                <div style="position: absolute; bottom: 4px; right: 4px; width: 36px; height: 36px; background: var(--accent-primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; border: 3px solid var(--bg-card); box-shadow: var(--shadow-sm);" title="Photo Options">
+                                                    <span class="material-icons-round" style="font-size: 1.25rem;">photo_camera</span>
+                                                </div>
+                                                <input type="file" id="profile-avatar-file-input" accept="image/*" class="hidden">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="prof-emp-id">Employee ID</label>
+                                            <input type="text" id="prof-emp-id" readonly disabled class="input-disabled">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-name">Full Name</label>
+                                            <input type="text" id="prof-name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-email">Email Address</label>
+                                            <input type="email" id="prof-email" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-contact">Contact Number</label>
+                                            <input type="tel" id="prof-contact" placeholder="e.g. +91 9876543210" autocomplete="tel">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-joining-date">Joining Date</label>
+                                            <input type="date" id="prof-joining-date">
+                                            <span id="prof-joining-days-badge" style="font-size:0.8rem;color:var(--accent-secondary);font-weight:600;margin-top:4px;display:block;"></span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-project-name">Assigned Project Name</label>
+                                            <input type="text" id="prof-project-name" placeholder="e.g. ASPAC EDI">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-project-date">Date of Project Assignment</label>
+                                            <input type="date" id="prof-project-date">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="prof-project-end-date">Project End Date</label>
+                                            <input type="date" id="prof-project-end-date">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -314,12 +365,12 @@
                                 </div>
                                 <div class="panel-body grid-2">
                                     <div class="form-group">
-                                        <label for="prof-prev-exp">Previous Experience (Before Arohak)</label>
-                                        <textarea id="prof-prev-exp" rows="3" placeholder="e.g. 5 Years in EDI Domain as Senior Engineer"></textarea>
+                                        <label for="prof-prev-exp">Previous Experience (Years)</label>
+                                        <input type="text" id="prof-prev-exp" placeholder="e.g. 2.3">
                                     </div>
                                     <div class="form-group">
-                                        <label for="prof-arohak-exp">Arohak Experience</label>
-                                        <textarea id="prof-arohak-exp" rows="3" placeholder="e.g. 2 Years, 4 Months working on Kenvue project"></textarea>
+                                        <label for="prof-arohak-exp">Arohak Experience (Years)</label>
+                                        <input type="text" id="prof-arohak-exp" placeholder="e.g. 1.5">
                                     </div>
                                     <div class="form-group col-span-2">
                                         <label>Total Overall Experience</label>
@@ -356,55 +407,86 @@
                                 </div>
                             </div>
 
-                            <div class="form-actions-bar">
-                                <button type="button" id="reset-profile-btn" class="btn btn-secondary">Discard Changes</button>
-                                <button type="submit" class="btn btn-primary">
+                            <div class="panel">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">devices</span>
+                                    <h2>Office Assets &amp; Equipment</h2>
+                                </div>
+                                <div class="panel-body grid-2">
+                                    <div class="form-group">
+                                        <label for="prof-has-laptop">Has Laptop Issued?</label>
+                                        <select id="prof-has-laptop">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-laptop-details">Laptop Model Number</label>
+                                        <input type="text" id="prof-laptop-details" placeholder="e.g. Dell Latitude 5420">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-has-headset">Has Headset Issued?</label>
+                                        <select id="prof-has-headset">
+                                            <option value="No">No</option>
+                                            <option value="Yes">Yes</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prof-headset-details">Headset Serial Number S/N</label>
+                                        <input type="text" id="prof-headset-details" placeholder="e.g. S/N: HS-987654">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resume Management Panel -->
+                            <div class="panel" style="margin-top: 24px;">
+                                <div class="panel-header">
+                                    <span class="material-icons-round">description</span>
+                                    <h2>Resume Management</h2>
+                                </div>
+                                <div class="panel-body">
+                                    <p class="panel-helper-text">Download your automatically generated profile resume, or upload your own custom resume file (PDF, DOC, DOCX).</p>
+                                    <div class="resume-actions-container" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 12px;">
+                                        
+                                        <!-- Option 1: Automatic Generated Resume -->
+                                        <button type="button" id="view-generated-resume-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+                                            <span class="material-icons-round">visibility</span>
+                                            <span>View Generated Resume</span>
+                                        </button>
+                                        
+                                        <!-- Option 2: Upload User's Self Resume -->
+                                        <input type="file" id="upload-self-resume-input" accept=".pdf,.doc,.docx" style="display: none;">
+                                        <button type="button" id="upload-self-resume-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
+                                            <span class="material-icons-round">upload_file</span>
+                                            <span>Upload Resume</span>
+                                        </button>
+                                        
+                                        <!-- Uploaded file display & delete option -->
+                                        <div id="uploaded-resume-status" class="hidden" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+                                            <span class="material-icons-round" style="color: var(--accent-secondary);">check_circle</span>
+                                            <span id="uploaded-resume-name" style="font-size: 0.9rem; font-weight: 500;">resume.pdf</span>
+                                            
+                                            <button type="button" id="download-uploaded-resume-btn" class="btn btn-secondary btn-icon-only" title="Download Uploaded Resume" style="padding: 4px;">
+                                                <span class="material-icons-round" style="font-size: 1.2rem;">download</span>
+                                            </button>
+                                            
+                                            <button type="button" id="delete-uploaded-resume-btn" class="btn btn-danger btn-icon-only" title="Delete Resume" style="padding: 4px;">
+                                                <span class="material-icons-round" style="font-size: 1.2rem;">delete</span>
+                                            </button>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Save Profile Action Bar at the very end of the profile page -->
+                            <div class="form-actions-bar" style="margin-top: 24px; display: flex; justify-content: flex-end; align-items: center;">
+                                <button type="submit" id="save-all-profile-btn" class="btn btn-primary" style="padding: 12px 28px; font-size: 1rem; font-weight: 600;">
                                     <span class="material-icons-round">save</span>
-                                    <span>Save Profile &amp; Update Score</span>
+                                    <span>Update Profile</span>
                                 </button>
                             </div>
                         </form>
-
-                        <!-- Resume Management Panel -->
-                        <div class="panel" style="margin-top: 24px;">
-                            <div class="panel-header">
-                                <span class="material-icons-round">description</span>
-                                <h2>Resume Management</h2>
-                            </div>
-                            <div class="panel-body">
-                                <p class="panel-helper-text">Download your automatically generated profile resume, or upload your own custom resume file (PDF, DOC, DOCX).</p>
-                                <div class="resume-actions-container" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 12px;">
-                                    
-                                    <!-- Option 1: Automatic Generated Resume -->
-                                    <button type="button" id="view-generated-resume-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="material-icons-round">visibility</span>
-                                        <span>View Generated Resume</span>
-                                    </button>
-                                    
-                                    <!-- Option 2: Upload User's Self Resume -->
-                                    <input type="file" id="upload-self-resume-input" accept=".pdf,.doc,.docx" style="display: none;">
-                                    <button type="button" id="upload-self-resume-btn" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="material-icons-round">upload_file</span>
-                                        <span>Upload Resume</span>
-                                    </button>
-                                    
-                                    <!-- Uploaded file display & delete option -->
-                                    <div id="uploaded-resume-status" class="hidden" style="display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-                                        <span class="material-icons-round" style="color: var(--accent-secondary);">check_circle</span>
-                                        <span id="uploaded-resume-name" style="font-size: 0.9rem; font-weight: 500;">resume.pdf</span>
-                                        
-                                        <button type="button" id="download-uploaded-resume-btn" class="btn btn-secondary btn-icon-only" title="Download Uploaded Resume" style="padding: 4px;">
-                                            <span class="material-icons-round" style="font-size: 1.2rem;">download</span>
-                                        </button>
-                                        
-                                        <button type="button" id="delete-uploaded-resume-btn" class="btn btn-danger btn-icon-only" title="Delete Resume" style="padding: 4px;">
-                                            <span class="material-icons-round" style="font-size: 1.2rem;">delete</span>
-                                        </button>
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                        </div>
                     </section>
 
 
@@ -507,117 +589,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Weekly Timesheet Panel -->
-                        <div class="panel" style="margin-top: 24px;">
-                            <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span class="material-icons-round">schedule</span>
-                                    <h2>Weekly Timesheet</h2>
-                                </div>
-                                <div class="timesheet-week-selector" style="display: flex; align-items: center; gap: 12px;">
-                                    <button class="btn btn-secondary btn-icon-only" id="ts-prev-week-btn" title="Previous Week">
-                                        <span class="material-icons-round">chevron_left</span>
-                                    </button>
-                                    <span id="ts-week-label" style="font-weight: 500; font-size: 0.95rem; min-width: 180px; text-align: center;">This week</span>
-                                    <button class="btn btn-secondary btn-icon-only" id="ts-next-week-btn" title="Next Week">
-                                        <span class="material-icons-round">chevron_right</span>
-                                    </button>
-                                    <input type="date" id="ts-week-picker" style="display: none;">
-                                    <button class="btn btn-secondary btn-icon-only" id="ts-calendar-btn" title="Select Date">
-                                        <span class="material-icons-round">calendar_today</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="panel-body">
-                                <div class="table-responsive" style="overflow-x: auto;">
-                                    <table class="admin-table" id="timesheet-table" style="min-width: 800px;">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 25%;">Client & Project</th>
-                                                <th style="width: 25%;">Task</th>
-                                                <th id="ts-header-mon" style="text-align: center; width: 8%;">Mon</th>
-                                                <th id="ts-header-tue" style="text-align: center; width: 8%;">Tue</th>
-                                                <th id="ts-header-wed" style="text-align: center; width: 8%;">Wed</th>
-                                                <th id="ts-header-thu" style="text-align: center; width: 8%;">Thu</th>
-                                                <th id="ts-header-fri" style="text-align: center; width: 8%;">Fri</th>
-                                                <th style="text-align: center; width: 10%;">Total</th>
-                                                <th style="width: 8%; text-align: center;">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="timesheet-tbody">
-                                            <!-- Dynamically populated -->
-                                        </tbody>
-                                        <tfoot>
-                                            <tr style="font-weight: 600; background: var(--bg-tertiary);">
-                                                <td colspan="2" style="text-align: right; padding-right: 20px;">Total</td>
-                                                <td id="ts-total-mon" style="text-align: center;">0:00</td>
-                                                <td id="ts-total-tue" style="text-align: center;">0:00</td>
-                                                <td id="ts-total-wed" style="text-align: center;">0:00</td>
-                                                <td id="ts-total-thu" style="text-align: center;">0:00</td>
-                                                <td id="ts-total-fri" style="text-align: center;">0:00</td>
-                                                <td id="ts-total-weekly" style="text-align: center; color: var(--primary-color);">0:00</td>
-                                                <td></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                                
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px;">
-                                    <div style="display: flex; gap: 12px;">
-                                        <button class="btn btn-secondary" id="ts-add-row-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
-                                            <span class="material-icons-round" style="font-size: 1.2rem;">add</span> Add Row
-                                        </button>
-                                        <button class="btn btn-secondary" id="ts-copy-prev-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
-                                            <span class="material-icons-round" style="font-size: 1.2rem;">content_copy</span> Copy Previous Week
-                                        </button>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 16px; margin-left: auto;">
-                                        <span id="ts-limit-status" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Total: 0:00 / 45:00</span>
-                                        <button class="btn btn-primary" id="ts-save-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 20px;">
-                                            <span class="material-icons-round" style="font-size: 1.2rem;">save</span> Save Timesheet
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <style>
-                            #timesheet-table input[type="text"] {
-                                border: none !important;
-                                background: transparent !important;
-                                color: var(--text-primary) !important;
-                                font-size: 0.875rem;
-                                border-radius: 4px;
-                                transition: all 0.15s ease;
-                            }
-                            #timesheet-table input[type="text"]:hover:not(:disabled) {
-                                background: rgba(255, 255, 255, 0.05) !important;
-                            }
-                            #timesheet-table input[type="text"]:focus {
-                                outline: none !important;
-                                background: var(--bg-secondary) !important;
-                                box-shadow: 0 0 0 1px var(--primary-color) !important;
-                            }
-                            #timesheet-table input[type="text"]:disabled {
-                                color: var(--text-muted) !important;
-                                opacity: 0.5;
-                                cursor: not-allowed !important;
-                                background: transparent !important;
-                            }
-                            .ts-delete-row-btn {
-                                padding: 6px !important;
-                                min-width: unset !important;
-                                border-radius: 4px;
-                                transition: all 0.15s ease;
-                            }
-                            .ts-delete-row-btn:hover {
-                                background: rgba(239, 68, 68, 0.1) !important;
-                                border-color: var(--danger) !important;
-                            }
-                        </style>
-
-
                     </section>
 
                     <!-- ══════════════════════════════════════════ -->
@@ -660,7 +631,7 @@
                     <section id="tab-emp-skilltargets" class="tab-pane">
                         <div class="page-header-row">
                             <div>
-                                <h1>Yearly Skill Targets</h1>
+                                <h1>Employee Growth Targets</h1>
                                 <p>Set and track the skills you plan to learn or achieve by year-end.</p>
                             </div>
                             <button id="add-target-btn" class="btn btn-primary">
@@ -685,6 +656,215 @@
                     </section>
 
                     <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 7: Weekly Timesheet (dedicated 7th page) -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-emp-timesheet" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Weekly Timesheet</h1>
+                                <p>Log and track your weekly project hours, client assignments, and tasks.</p>
+                            </div>
+                        </div>
+
+                        <!-- Weekly Timesheet Panel -->
+                        <div class="panel">
+                            <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-icons-round">schedule</span>
+                                    <h2>Weekly Timesheet</h2>
+                                    <span id="ts-status-badge" class="badge badge-secondary" style="font-size: 0.85rem; margin-left: 8px;">Draft</span>
+                                </div>
+                                <div class="timesheet-week-selector" style="display: flex; align-items: center; gap: 12px;">
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-prev-week-btn" title="Previous Week">
+                                        <span class="material-icons-round">chevron_left</span>
+                                    </button>
+                                    <span id="ts-week-label" style="font-weight: 500; font-size: 0.95rem; min-width: 180px; text-align: center;">This week</span>
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-next-week-btn" title="Next Week">
+                                        <span class="material-icons-round">chevron_right</span>
+                                    </button>
+                                    <input type="date" id="ts-week-picker" style="display: none;">
+                                    <button class="btn btn-secondary btn-icon-only" id="ts-calendar-btn" title="Select Date">
+                                        <span class="material-icons-round">calendar_today</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div id="ts-lock-banner" class="alert hidden" style="margin-bottom: 16px;"></div>
+                                <div class="table-responsive" style="overflow-x: auto;">
+                                    <table class="admin-table" id="timesheet-table" style="min-width: 800px;">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 25%;">Client &amp; Project</th>
+                                                <th style="width: 25%;">Task</th>
+                                                <th id="ts-header-mon" style="text-align: center; width: 8%;">Mon</th>
+                                                <th id="ts-header-tue" style="text-align: center; width: 8%;">Tue</th>
+                                                <th id="ts-header-wed" style="text-align: center; width: 8%;">Wed</th>
+                                                <th id="ts-header-thu" style="text-align: center; width: 8%;">Thu</th>
+                                                <th id="ts-header-fri" style="text-align: center; width: 8%;">Fri</th>
+                                                <th style="text-align: center; width: 10%;">Total</th>
+                                                <th style="width: 8%; text-align: center;">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="timesheet-tbody">
+                                            <!-- Dynamically populated -->
+                                        </tbody>
+                                        <tfoot>
+                                            <tr style="font-weight: 600; background: var(--bg-tertiary);">
+                                                <td colspan="2" style="text-align: right; padding-right: 20px;">Total</td>
+                                                <td id="ts-total-mon" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-tue" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-wed" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-thu" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-fri" style="text-align: center;">0:00</td>
+                                                <td id="ts-total-weekly" style="text-align: center; color: var(--primary-color);">0:00</td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 12px;">
+                                    <div style="display: flex; gap: 12px;">
+                                        <button class="btn btn-secondary" id="ts-add-row-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">add</span> Add Row
+                                        </button>
+                                        <button class="btn btn-secondary" id="ts-copy-prev-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">content_copy</span> Copy Previous Week
+                                        </button>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+                                        <span id="ts-limit-status" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Total: 0:00 / 45:00</span>
+                                        <button class="btn btn-primary" id="ts-save-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 18px;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">save</span> Save Timesheet
+                                        </button>
+                                        <button class="btn btn-success" id="ts-release-btn" style="display: flex; align-items: center; gap: 6px; padding: 8px 18px; background: #10b981; border-color: #10b981; color: white;">
+                                            <span class="material-icons-round" style="font-size: 1.2rem;">send</span> Release Timesheet
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            #timesheet-table input[type="text"] {
+                                border: none !important;
+                                background: transparent !important;
+                                color: var(--text-primary) !important;
+                                font-size: 0.875rem;
+                                border-radius: 4px;
+                                transition: all 0.15s ease;
+                            }
+                            #timesheet-table input[type="text"]:hover:not(:disabled) {
+                                background: rgba(255, 255, 255, 0.05) !important;
+                            }
+                            #timesheet-table input[type="text"]:focus {
+                                outline: none !important;
+                                background: var(--bg-secondary) !important;
+                                box-shadow: 0 0 0 1px var(--primary-color) !important;
+                            }
+                            #timesheet-table input[type="text"]:disabled {
+                                color: var(--text-muted) !important;
+                                opacity: 0.5;
+                                cursor: not-allowed !important;
+                                background: transparent !important;
+                            }
+                            .ts-delete-row-btn {
+                                padding: 6px !important;
+                                min-width: unset !important;
+                                border-radius: 4px;
+                                transition: all 0.15s ease;
+                            }
+                            .ts-delete-row-btn:hover {
+                                background: rgba(239, 68, 68, 0.1) !important;
+                                border-color: var(--danger) !important;
+                            }
+                        </style>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB: Admin Timesheet Approvals             -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-timesheets" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Employee Timesheet Approvals</h1>
+                                <p>Master submission roster for all employees across the organization. Review and approve released timesheets below.</p>
+                            </div>
+                        </div>
+
+                        <!-- Controls & Filters -->
+                        <div class="search-panel" style="margin-bottom: 24px;">
+                            <div class="search-grid" style="grid-template-columns: 200px 1fr 220px 160px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-ts-week-picker">Select Week</label>
+                                    <input type="date" id="admin-ts-week-picker" class="form-control">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-ts-search-input">Search Employee</label>
+                                    <input type="text" id="admin-ts-search-input" class="form-control" placeholder="Search by name or employee ID...">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-ts-status-filter">Timesheet Status Filter</label>
+                                    <select id="admin-ts-status-filter" class="form-control">
+                                        <option value="ALL">All Employees</option>
+                                        <option value="Released" selected>Pending Approval (Released)</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Rejected">Rejected</option>
+                                        <option value="Draft">Draft / Not Released</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                                    <button id="admin-ts-refresh-btn" class="btn btn-secondary" style="width:100%;">
+                                        <span class="material-icons-round">refresh</span> Refresh List
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Released Detailed Timesheets Container (No summary roster box) -->
+                        <div id="admin-released-timesheets-container" style="display: flex; flex-direction: column; gap: 24px;">
+                            <div class="text-center" style="padding: 40px;"><div class="spinner"></div>Loading released timesheets...</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB 7 ADMIN: Approved Employee Timesheets   -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-emp-timesheets" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Approved Employee Timesheets</h1>
+                                <p>Full row-by-row weekly timesheets approved by Admin for all employees.</p>
+                            </div>
+                        </div>
+
+                        <!-- Filter Controls -->
+                        <div class="search-panel" style="margin-bottom: 24px;">
+                            <div class="search-grid" style="grid-template-columns: 200px 1fr 140px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-tsdetail-week-picker">Select Week</label>
+                                    <input type="date" id="admin-tsdetail-week-picker" class="form-control">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-tsdetail-search-input">Search Approved Employee</label>
+                                    <input type="text" id="admin-tsdetail-search-input" class="form-control" placeholder="Search by name or employee ID...">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0; display:flex; align-items:flex-end;">
+                                    <button id="admin-tsdetail-refresh-btn" class="btn btn-secondary" style="width:100%;">
+                                        <span class="material-icons-round">refresh</span> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Full Approved Timesheets Container -->
+                        <div id="admin-approved-timesheets-container" style="display: flex; flex-direction: column; gap: 24px;">
+                            <div class="text-center" style="padding: 40px;"><div class="spinner"></div>Loading approved timesheets...</div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
                     <!-- ADMIN TAB: Dashboard (existing)           -->
                     <!-- ══════════════════════════════════════════ -->
                     <section id="tab-admin-dashboard" class="tab-pane">
@@ -699,14 +879,7 @@
                                 <div class="stat-icon-wrapper purple"><span class="material-icons-round">groups</span></div>
                                 <div class="stat-info">
                                     <span class="stat-label">Total Employees</span>
-                                    <span id="stat-total-emp" class="stat-number">0</span>
-                                </div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon-wrapper green"><span class="material-icons-round">trending_up</span></div>
-                                <div class="stat-info">
-                                    <span class="stat-label">Average Rating</span>
-                                    <span id="stat-avg-rating" class="stat-number">0.0</span>
+                                    <span id="stat-total-emp" class="stat-number">78</span>
                                 </div>
                             </div>
                             <div class="stat-card">
@@ -720,33 +893,83 @@
                                 <div class="stat-icon-wrapper blue"><span class="material-icons-round">verified</span></div>
                                 <div class="stat-info">
                                     <span class="stat-label">Certified Talents</span>
-                                    <span id="stat-certified-count" class="stat-number">0</span>
+                                    <span id="stat-certified-count" class="stat-number">34</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="dashboard-grid">
-                            <div class="panel">
-                                <div class="panel-header">
-                                    <span class="material-icons-round">pie_chart</span>
-                                    <h2>Top Technology Skillsets</h2>
-                                </div>
-                                <div class="panel-body">
-                                    <div id="skills-chart-list" class="skills-chart-list"></div>
+                        <!-- 3 Enhanced Executive Pie / Donut Charts Section for Admin Analytics -->
+                        <div class="panel" style="margin-bottom: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md);">
+                            <div class="panel-header" style="border-bottom: 1px solid var(--border-color); padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; background: rgba(33, 46, 76, 0.6);">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="material-icons-round" style="color: #60a5fa; font-size: 1.6rem;">donut_large</span>
+                                    <div>
+                                        <h2 style="margin: 0; font-size: 1.15rem; color: #ffffff; font-weight: 600;">Executive Technology &amp; Domain Insights</h2>
+                                        <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Real-time aggregated skill proficiency, domain allocation, and headcount distributions.</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="panel">
-                                <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <span class="material-icons-round">notification_important</span>
-                                        <h2>Employees Requiring Update Check</h2>
+                            <div class="panel-body" style="padding: 24px;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 24px;">
+                                    
+                                    <!-- 1st Chart: Top Technology Skillsets by Rating -->
+                                    <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease;">
+                                        <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                                            <h3 style="font-size: 0.95rem; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                                <span class="material-icons-round" style="color: #60a5fa; font-size: 1.2rem;">stars</span>
+                                                Skillsets by Rating Sum
+                                            </h3>
+                                            <span id="chart-rating-total-badge" class="badge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.72rem; padding: 3px 8px;">Top 7 Skills</span>
+                                        </div>
+                                        <div style="position: relative; width: 100%; height: 280px; display: flex; align-items: center; justify-content: center;">
+                                            <canvas id="chart-skills-by-rating"></canvas>
+                                        </div>
                                     </div>
-                                    <button id="admin-send-reminders-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.85rem;">
-                                        <span class="material-icons-round" style="font-size: 1.10rem;">mail</span> Send Reminders
-                                    </button>
+
+                                    <!-- 2nd Chart: Total Types of Domains in Arohak -->
+                                    <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease;">
+                                        <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                                            <h3 style="font-size: 0.95rem; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                                <span class="material-icons-round" style="color: #a78bfa; font-size: 1.2rem;">domain</span>
+                                                Arohak Domains Breakdown
+                                            </h3>
+                                            <span id="chart-domain-total-badge" class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); font-size: 0.72rem; padding: 3px 8px;">10 Domains</span>
+                                        </div>
+                                        <div style="position: relative; width: 100%; height: 280px; display: flex; align-items: center; justify-content: center;">
+                                            <canvas id="chart-domain-distribution"></canvas>
+                                        </div>
+                                    </div>
+
+                                    <!-- 3rd Chart: Top Skills in Arohak (Employee Count) -->
+                                    <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 22px 18px; text-align: center; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-sm); transition: transform 0.2s ease;">
+                                        <div style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
+                                            <h3 style="font-size: 0.95rem; margin: 0; color: #ffffff; display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                                <span class="material-icons-round" style="color: #34d399; font-size: 1.2rem;">groups</span>
+                                                Top Skills Headcount
+                                            </h3>
+                                            <span id="chart-headcount-total-badge" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.72rem; padding: 3px 8px;">Employee Count</span>
+                                        </div>
+                                        <div style="position: relative; width: 100%; height: 280px; display: flex; align-items: center; justify-content: center;">
+                                            <canvas id="chart-top-skills-count"></canvas>
+                                        </div>
+                                    </div>
+
                                 </div>
-                                <div class="panel-body">
-                                    <div id="pending-update-list" class="pending-list"></div>
+                            </div>
+                        </div>
+
+                        <!-- Update Check List Panel -->
+                        <div class="panel">
+                            <div class="panel-header" style="justify-content: space-between; display: flex; align-items: center; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="material-icons-round" style="color:#ef4444;">notification_important</span>
+                                    <h2 style="color:#ffffff;">Employees Requiring Update Check</h2>
                                 </div>
+                                <button id="admin-send-reminders-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 0.85rem;">
+                                    <span class="material-icons-round" style="font-size: 1.10rem;">mail</span> Send Reminders
+                                </button>
+                            </div>
+                            <div class="panel-body">
+                                <div id="pending-update-list" class="pending-list"></div>
                             </div>
                         </div>
                     </section>
@@ -758,17 +981,7 @@
                         <div class="page-header-row">
                             <div>
                                 <h1>Admin Directory</h1>
-                                <p>Manage, search, and extract reports for all employee details.</p>
-                            </div>
-                             <div style="display: flex; gap: 10px;">
-                                <button id="admin-export-btn" class="btn btn-secondary">
-                                    <span class="material-icons-round">download</span>
-                                    <span>Export Report (CSV)</span>
-                                </button>
-                                <button id="admin-export-excel-btn" class="btn btn-primary">
-                                    <span class="material-icons-round">download_for_offline</span>
-                                    <span>Export Report (Excel)</span>
-                                </button>
+                                <p>Manage and search all employee details.</p>
                             </div>
                         </div>
                         <div class="search-panel">
@@ -840,7 +1053,10 @@
                         <div class="panel">
                             <div class="panel-header">
                                 <span class="material-icons-round">today</span>
-                                <h2>Today's Attendance Overview</h2>
+                                <h2 style="display:flex;align-items:center;gap:10px;">
+                                    Today's Attendance Overview
+                                    <span id="admin-att-today-date" style="font-size:0.8rem;font-weight:500;color:var(--text-muted);padding:2px 10px;background:var(--bg-glass-card);border:1px solid var(--border-color);border-radius:20px;"></span>
+                                </h2>
                                 <button id="admin-att-refresh-btn" class="btn btn-secondary btn-icon-only" title="Refresh" style="margin-left:auto;">
                                     <span class="material-icons-round">refresh</span>
                                 </button>
@@ -968,16 +1184,61 @@
                                         <tr>
                                             <th>Emp ID</th>
                                             <th>Employee Name</th>
-                                            <th>Office Laptop</th>
-                                            <th>Headset from Office</th>
-                                            <th>Action</th>
+                                            <th>Laptop ID</th>
+                                            <th>Headset ID</th>
                                         </tr>
                                     </thead>
                                     <tbody id="assets-employees-tbody">
-                                        <tr><td colspan="5" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
+                                        <tr><td colspan="4" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </section>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!-- TAB: Admin Projects & Teams Overview (new) -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <section id="tab-admin-projects" class="tab-pane">
+                        <div class="page-header-row">
+                            <div>
+                                <h1>Arohak Projects &amp; Teams</h1>
+                                <p>View all active client projects, assigned project managers, team leads, and team members.</p>
+                            </div>
+                            <div class="page-header-badges">
+                                <div class="last-updated-badge">
+                                    <span>Total Projects: </span><strong id="admin-projects-count">0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Search & Filter -->
+                        <div class="search-panel" style="margin-bottom:24px;">
+                            <div class="search-grid" style="grid-template-columns: 1fr 220px 140px;">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-projects-search">Search Project or Employee</label>
+                                    <div class="input-wrapper">
+                                        <span class="material-icons-round input-icon">search</span>
+                                        <input type="text" id="admin-projects-search" placeholder="Search project name, manager, lead, or employee...">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label for="admin-projects-filter">Filter Project</label>
+                                    <select id="admin-projects-filter">
+                                        <option value="">All Projects</option>
+                                    </select>
+                                </div>
+                                <div class="form-group search-btn-group" style="margin-bottom:0;align-self:flex-end;">
+                                    <button id="admin-projects-refresh-btn" class="btn btn-secondary" style="width:100%;">
+                                        <span class="material-icons-round">refresh</span> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Projects List Container -->
+                        <div id="admin-projects-list-container" style="display:flex;flex-direction:column;gap:24px;">
+                            <div class="text-center" style="padding:60px;"><div class="spinner"></div>Loading Arohak Projects &amp; Teams...</div>
                         </div>
                     </section>
 
@@ -987,7 +1248,7 @@
                     <section id="tab-admin-skilltargets" class="tab-pane">
                         <div class="page-header-row">
                             <div>
-                                <h1>Yearly Skill Targets Sheet</h1>
+                                <h1>Employee Growth Targets</h1>
                                 <p>Monitor all employees' skill targets, completion status, and dates.</p>
                             </div>
                             <div class="page-header-badges">
@@ -1002,14 +1263,14 @@
                             <div class="stat-card">
                                 <div class="stat-icon-wrapper green"><span class="material-icons-round">check_circle</span></div>
                                 <div class="stat-info">
-                                    <span class="stat-label">Target is onpoint</span>
+                                    <span class="stat-label">Target Completed</span>
                                     <span id="admin-st-onpoint-count" class="stat-number">0</span>
                                 </div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-icon-wrapper orange"><span class="material-icons-round">trending_up</span></div>
                                 <div class="stat-info">
-                                    <span class="stat-label">Pending / In Progress</span>
+                                    <span class="stat-label">In-Progress</span>
                                     <span id="admin-st-pending-count" class="stat-number">0</span>
                                 </div>
                             </div>
@@ -1036,8 +1297,8 @@
                                     <label for="admin-st-filter-status">Filter by Status</label>
                                     <select id="admin-st-filter-status">
                                         <option value="">All Statuses</option>
-                                        <option value="Target is onpoint">Target is onpoint</option>
-                                        <option value="Pending">Pending</option>
+                                        <option value="Target Completed">Target Completed</option>
+                                        <option value="In-Progress">In-Progress</option>
                                         <option value="No Targets Set">No Targets Set</option>
                                     </select>
                                 </div>
@@ -1202,7 +1463,7 @@
                             <label for="st-status">Status</label>
                             <select id="st-status">
                                 <option value="Planned">Planned</option>
-                                <option value="In Progress">In Progress</option>
+                                <option value="On-Going">On-Going</option>
                                 <option value="Completed">Completed</option>
                             </select>
                         </div>
@@ -1504,6 +1765,53 @@
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <!-- Profile Photo Options Popup Modal (Top level child of body) -->
+    <div id="modal-profile-photo-actions" class="modal hidden" onclick="if(event.target===this) closeProfilePhotoOptionsModal()" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 999999; animation: fadeIn 0.2s ease;">
+        <div class="modal-content" style="background: #212e4c; border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-lg); width: 90%; max-width: 380px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="material-icons-round" style="color: #3b82f6; font-size: 1.5rem;">account_circle</span>
+                    <h3 style="margin: 0; font-size: 1.1rem; color: #ffffff;">Profile Photo Options</h3>
+                </div>
+                <button type="button" class="btn btn-clear-icon" onclick="closeProfilePhotoOptionsModal()"><span class="material-icons-round" style="color:#ffffff;">close</span></button>
+            </div>
+            <p style="margin: 0; font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">Select an option below to upload a new picture or delete your current profile image.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button type="button" class="btn btn-primary" id="btn-popup-upload-photo" onclick="handleUploadPhotoFromPopup()" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #2563eb; border-color: #3b82f6; color: white;">
+                    <span class="material-icons-round">upload_file</span>
+                    <span>Upload Image</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btn-popup-remove-photo" onclick="handleRemovePhotoFromPopup()" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; background: #1b2642; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.5);">
+                    <span class="material-icons-round">delete_outline</span>
+                    <span>Delete Image</span>
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeProfilePhotoOptionsModal()" style="width: 100%; padding: 10px; background: #17223b; color: #cbd5e1;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.parseExpToMonths = function(expStr) {
+            if (!expStr) return 0;
+            var str = String(expStr).trim();
+            if (!str) return 0;
+            var plainNum = parseFloat(str);
+            if (!isNaN(plainNum) && /^\d+(?:\.\d+)?$/.test(str)) {
+                return Math.round(plainNum * 12);
+            }
+            var totalYears = 0;
+            var yearMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:years?|yrs?|y)/i);
+            var monthMatch = str.match(/(\d+(?:\.\d+)?)\s*(?:months?|mos?|m)/i);
+            if (yearMatch) totalYears += parseFloat(yearMatch[1]);
+            if (monthMatch) totalYears += parseFloat(monthMatch[1]) / 12;
+            if (!yearMatch && !monthMatch && !isNaN(plainNum)) {
+                totalYears = plainNum;
+            }
+            return Math.round(totalYears * 12);
+        };
+    </script>
+    <script src="/js/app.js?v=33.0"></script>
 </body>
 </html>

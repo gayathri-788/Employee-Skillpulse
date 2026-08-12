@@ -41,6 +41,7 @@ class Employee(Base):
     # Experience
     previous_exp = Column(String, nullable=True)
     arohak_exp = Column(String, nullable=True)
+    total_exp = Column(String, nullable=True)
     
     # Certifications
     certifications = Column(String, nullable=True)
@@ -48,14 +49,18 @@ class Employee(Base):
     cert_end_date = Column(String, nullable=True)
     expiry_date = Column(String, nullable=True)
     
-    # Project Info
+    # Basic & Project Info
+    joining_date = Column(String, nullable=True)
     project_name = Column(String, nullable=True)
     project_assignment_date = Column(String, nullable=True)
+    project_end_date = Column(String, nullable=True)
+    contact_number = Column(String, nullable=True)
     
     # Assets Info
     has_laptop = Column(String, default="No")
     laptop_details = Column(String, nullable=True)
     has_headset = Column(String, default="No")
+    headset_details = Column(String, nullable=True)
     
     # Ratings and Score
     work_exp_skills_rating = Column(Float, default=0.0)
@@ -79,6 +84,8 @@ class Employee(Base):
     skill_targets = relationship("SkillTarget", back_populates="employee", cascade="all, delete-orphan")
     leave_requests = relationship("LeaveRequest", back_populates="employee", cascade="all, delete-orphan")
     timesheet_rows = relationship("TimesheetRow", back_populates="employee", cascade="all, delete-orphan")
+    timesheet_statuses = relationship("WeeklyTimesheetStatus", back_populates="employee", cascade="all, delete-orphan")
+
 
 
 
@@ -172,3 +179,17 @@ class TimesheetRow(Base):
     
     employee = relationship("Employee", back_populates="timesheet_rows")
 
+
+class WeeklyTimesheetStatus(Base):
+    """Stores release and approval status of an employee's weekly timesheet."""
+    __tablename__ = "weekly_timesheet_statuses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(String, ForeignKey("employees.employee_id", ondelete="CASCADE"), index=True)
+    week_start = Column(String, index=True)           # YYYY-MM-DD
+    status = Column(String, default="Draft")           # "Draft", "Released", "Approved", "Rejected"
+    released_at = Column(DateTime, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    admin_notes = Column(String, nullable=True)
+    
+    employee = relationship("Employee", back_populates="timesheet_statuses")
