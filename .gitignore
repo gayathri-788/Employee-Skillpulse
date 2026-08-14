@@ -45,3 +45,8 @@ desktop.ini
 .vscode/
 *.swp
 *.swo
+
+# AI tooling (local state, not part of the project)
+.claude/
+.serena/
+graphify-out/
