@@ -124,7 +124,7 @@ def generate_resume_pdf(emp) -> bytes:
     name_str = emp.name.upper() if emp.name else "EMPLOYEE NAME"
     story.append(Paragraph(name_str, title_style))
     
-    job_title_str = getattr(emp, 'job_title', 'TECHNICAL ASSOCIATE').upper()
+    job_title_str = (getattr(emp, 'job_title', None) or 'TECHNICAL ASSOCIATE').upper()
     story.append(Paragraph(job_title_str, subtitle_style))
     
     # Contact Row: linkedin, email, phone, location

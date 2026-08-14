@@ -5,7 +5,6 @@ import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Response, Request, UploadFile, File
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -32,6 +31,7 @@ try:
         verify_password, get_password_hash, create_access_token,
         get_current_user, require_admin
     )
+    import config
 except ModuleNotFoundError:
     from backend.database import get_db, engine, Base, SessionLocal
     from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow, WeeklyTimesheetStatus
@@ -51,6 +51,7 @@ except ModuleNotFoundError:
         verify_password, get_password_hash, create_access_token,
         get_current_user, require_admin
     )
+    from backend import config
 
 # Ensure database tables are created
 Base.metadata.create_all(bind=engine)
@@ -362,7 +363,7 @@ app = FastAPI(title="Arohak Employee Skills & Details Portal")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=config.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -387,14 +388,7 @@ def login(login_data: UserLogin, response: Response, db: Session = Depends(get_d
     username = login_data.username.strip().lower()
     user = db.query(User).filter(User.username == username).first()
 
-    password_ok = False
-    if user:
-        password_ok = verify_password(login_data.password, user.hashed_password)
-        if not password_ok:
-            for fallback in ["Password@123", "password123", "password", "adminpassword123"]:
-                if verify_password(fallback, user.hashed_password):
-                    password_ok = True
-                    break
+    password_ok = user is not None and verify_password(login_data.password, user.hashed_password)
 
     if not user or not password_ok:
         raise HTTPException(
@@ -1997,28 +1991,10 @@ def startup_event():
 
 
 # ─────────────────────────────────────────────
-# Static Files & SPA Fallback
+# API root
 # ─────────────────────────────────────────────
+# The frontend (frontend/) is deployed separately on Vercel; this backend is API-only.
 
-frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
-
-if os.path.exists(frontend_path):
-    css_path = os.path.join(frontend_path, "css")
-    if os.path.exists(css_path):
-        app.mount("/css", StaticFiles(directory=css_path), name="css")
-
-    js_path = os.path.join(frontend_path, "js")
-    if os.path.exists(js_path):
-        app.mount("/js", StaticFiles(directory=js_path), name="js")
-
-    @app.get("/logo.png")
-    def get_logo():
-        return FileResponse(os.path.join(frontend_path, "logo.png"))
-
-    @app.get("/")
-    def read_index():
-        return FileResponse(os.path.join(frontend_path, "index.html"))
-else:
-    @app.get("/")
-    def read_index():
-        return {"detail": "Frontend folder not found. Running API-only server."}
+@app.get("/")
+def read_index():
+    return {"detail": "Arohak SkillPulse API — see /docs for the interactive API reference."}

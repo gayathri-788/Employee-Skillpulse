@@ -7,9 +7,9 @@ The portal features role-based access control (RBAC), a real-time rating visuali
 ---
 
 ## 🛠️ Technology Stack
-- **Backend**: FastAPI (Python)
+- **Backend**: FastAPI (Python), dependencies managed with [uv](https://docs.astral.sh/uv/)
 - **Database**: SQLite3 with SQLAlchemy ORM
-- **Frontend**: Single Page Application (SPA) built with Vanilla HTML5, custom CSS (featuring dark/light themes), and Vanilla ES6 JavaScript
+- **Frontend**: [Next.js](https://nextjs.org/) (App Router, TypeScript) with Framer Motion, deployed separately (e.g. Vercel) and talking to the backend over REST
 - **Seeding**: Automatically processes and aggregates profile spreadsheets from `Emp Details.xlsx`
 
 ---
@@ -26,66 +26,60 @@ Employee_details/
 │   ├── schemas.py         # Pydantic schemas for request validation & serialization
 │   ├── auth.py            # JWT token creation and direct bcrypt hashing utilities
 │   ├── seed.py            # Seed script parsing 'Emp Details.xlsx' to sqlite
-│   └── config.py          # Application configuration settings
+│   ├── config.py          # Application configuration settings
+│   ├── pyproject.toml     # Project metadata & dependencies (uv)
+│   └── uv.lock            # Locked dependency versions (uv)
 │
 ├── frontend/
-│   ├── index.html         # Single Page Application HTML shell
-│   ├── css/
-│   │   └── styles.css     # UI themes (light/dark) and responsive layout rules
-│   └── js/
-│       └── app.js         # Frontend controller, API fetcher, and score animations
+│   ├── src/app/            # Routes (App Router) — one folder per page, (app)/ group is auth-gated
+│   ├── src/components/     # Shared UI: app shell, modals, charts, calendars
+│   ├── src/lib/            # API client, auth/toast/theme contexts, formatting & domain helpers
+│   └── public/             # Static assets (logo, favicon)
 │
 ├── .gitignore             # Configured to ignore virtual environments, databases, and caches
 ├── database.db            # Generated SQLite database file (created by seed.py)
-├── Emp Details.xlsx       # Source Excel sheet for seeding profiles
-└── requirements.txt       # Python package dependencies
+└── Emp Details.xlsx       # Source Excel sheet for seeding profiles
 ```
 
 ---
 
 ## 🚀 Setup & Execution Guide
 
-Follow these steps to set up and run the application locally:
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) installed. The uv project (`pyproject.toml`/`uv.lock`/`.venv`) lives in `backend/`, but every command below is run **from the repository root** using `--project backend` — that keeps `database.db` and `Emp Details.xlsx` in the same place they've always been.
 
-### 1. Create a Virtual Environment (`venv`)
+### 1. Install Dependencies
 
-Navigate to the project root directory in your terminal and create a virtual environment:
-
-* **Windows**:
-  ```powershell
-  python -m venv venv
-  .\venv\Scripts\activate
-  ```
-
-* **macOS / Linux**:
-  ```bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ```
-
-### 2. Install Dependencies
-
-Install the required Python packages into your activated virtual environment:
 ```bash
-pip install -r requirements.txt
+uv sync --project backend
 ```
 
-### 3. Initialize and Seed the Database
+### 2. Initialize and Seed the Database
 
 Seed the SQLite database using the spreadsheet data from `Emp Details.xlsx`:
 ```bash
-python backend/seed.py
+uv run --project backend python backend/seed.py
 ```
 *Note: This creates/overwrites `database.db` and populates it with user accounts (password: `Password@123` by default) and an administrator account.*
 
-### 4. Run the Backend Server
+### 3. Run the Backend Server
 
 Start the development server with hot-reloading using `uvicorn`:
 ```bash
-python -m uvicorn backend.main:app --reload
+uv run --project backend uvicorn backend.main:app --reload
 ```
 
-The application will be served at **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**.
+The API will be served at **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)** (interactive docs at `/docs`).
+
+### 4. Run the Frontend
+
+In a separate terminal:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The portal will be served at **[http://localhost:3000/](http://localhost:3000/)**. It reads the backend URL from `NEXT_PUBLIC_API_BASE_URL` (see `frontend/.env.local`, defaults to `http://127.0.0.1:8000` for local dev — see `.env.example` for the production equivalent).
 
 ---
 
