@@ -3,6 +3,13 @@ import os
 # Database Configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database.db")
 
+# CORS Configuration - comma-separated list of allowed frontend origins
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if origin.strip()
+]
+
 # Security Configuration
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-arohak-token-key-change-in-prod-12345!")
 ALGORITHM = "HS256"

@@ -5,7 +5,6 @@ import datetime
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, Response, Request, UploadFile, File
 from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -15,7 +14,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from database import get_db, engine, Base, SessionLocal
-    from models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow, WeeklyTimesheetStatus
+    from models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, Talent, LeaveRequest, TimesheetRow, WeeklyTimesheetStatus
     from schemas import (
         UserLogin, Token, EmployeeResponse,
         EmployeeRestrictedResponse, EmployeeUpdate, PasswordChange,
@@ -23,6 +22,7 @@ try:
         AttendanceRecord, AttendanceUpsert, AttendanceResponse,
         CertSkillsResponse,
         SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
+        TalentCreate, TalentUpdate, TalentResponse,
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
@@ -32,9 +32,10 @@ try:
         verify_password, get_password_hash, create_access_token,
         get_current_user, require_admin
     )
+    import config
 except ModuleNotFoundError:
     from backend.database import get_db, engine, Base, SessionLocal
-    from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, LeaveRequest, TimesheetRow, WeeklyTimesheetStatus
+    from backend.models import User, Employee, EmployeeSchedule, Attendance, SkillTarget, Talent, LeaveRequest, TimesheetRow, WeeklyTimesheetStatus
     from backend.schemas import (
         UserLogin, Token, EmployeeResponse,
         EmployeeRestrictedResponse, EmployeeUpdate, PasswordChange,
@@ -42,6 +43,7 @@ except ModuleNotFoundError:
         AttendanceRecord, AttendanceUpsert, AttendanceResponse,
         CertSkillsResponse,
         SkillTargetCreate, SkillTargetUpdate, SkillTargetResponse,
+        TalentCreate, TalentUpdate, TalentResponse,
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
@@ -51,6 +53,7 @@ except ModuleNotFoundError:
         verify_password, get_password_hash, create_access_token,
         get_current_user, require_admin
     )
+    from backend import config
 
 # Ensure database tables are created
 Base.metadata.create_all(bind=engine)
@@ -362,7 +365,7 @@ app = FastAPI(title="Arohak Employee Skills & Details Portal")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=config.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -387,14 +390,7 @@ def login(login_data: UserLogin, response: Response, db: Session = Depends(get_d
     username = login_data.username.strip().lower()
     user = db.query(User).filter(User.username == username).first()
 
-    password_ok = False
-    if user:
-        password_ok = verify_password(login_data.password, user.hashed_password)
-        if not password_ok:
-            for fallback in ["Password@123", "password123", "password", "adminpassword123"]:
-                if verify_password(fallback, user.hashed_password):
-                    password_ok = True
-                    break
+    password_ok = user is not None and verify_password(login_data.password, user.hashed_password)
 
     if not user or not password_ok:
         raise HTTPException(
@@ -1525,6 +1521,100 @@ def get_employee_skill_targets(
     return q.order_by(SkillTarget.year.desc(), SkillTarget.created_at.desc()).all()
 
 
+@app.get("/api/talents/me", response_model=List[TalentResponse])
+def get_my_talents(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "employee":
+        raise HTTPException(status_code=403, detail="Admin accounts do not have personal talents.")
+    employee = db.query(Employee).filter(Employee.username == current_user.username).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return db.query(Talent).filter(Talent.employee_id == employee.employee_id).order_by(Talent.created_at.desc()).all()
+
+
+@app.post("/api/talents/me", response_model=TalentResponse)
+def create_talent(
+    data: TalentCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "employee":
+        raise HTTPException(status_code=403, detail="Admin accounts cannot create talents.")
+    employee = db.query(Employee).filter(Employee.username == current_user.username).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    talent = Talent(
+        employee_id=employee.employee_id,
+        category=data.category,
+        name=data.name.strip(),
+        note=data.note,
+    )
+    db.add(talent)
+    db.commit()
+    db.refresh(talent)
+    return talent
+
+
+@app.put("/api/talents/me/{talent_id}", response_model=TalentResponse)
+def update_talent(
+    talent_id: int,
+    data: TalentUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "employee":
+        raise HTTPException(status_code=403, detail="Admin accounts cannot update talents.")
+    employee = db.query(Employee).filter(Employee.username == current_user.username).first()
+    talent = db.query(Talent).filter(
+        Talent.id == talent_id, Talent.employee_id == employee.employee_id
+    ).first()
+    if not talent:
+        raise HTTPException(status_code=404, detail="Talent not found")
+    if data.category is not None:
+        talent.category = data.category
+    if data.name:
+        talent.name = data.name.strip()
+    if data.note is not None:
+        talent.note = data.note
+    talent.updated_at = datetime.datetime.utcnow()
+    db.commit()
+    db.refresh(talent)
+    return talent
+
+
+@app.delete("/api/talents/me/{talent_id}")
+def delete_talent(
+    talent_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "employee":
+        raise HTTPException(status_code=403, detail="Admin accounts cannot delete talents.")
+    employee = db.query(Employee).filter(Employee.username == current_user.username).first()
+    talent = db.query(Talent).filter(
+        Talent.id == talent_id, Talent.employee_id == employee.employee_id
+    ).first()
+    if not talent:
+        raise HTTPException(status_code=404, detail="Talent not found")
+    db.delete(talent)
+    db.commit()
+    return {"detail": "Talent deleted"}
+
+
+@app.get("/api/talents/{employee_id}", response_model=List[TalentResponse])
+def get_employee_talents(
+    employee_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    employee = db.query(Employee).filter(Employee.employee_id == employee_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return db.query(Talent).filter(Talent.employee_id == employee_id).order_by(Talent.created_at.desc()).all()
+
+
 @app.get("/api/admin/skilltargets-overview", response_model=List[AdminSkillTargetOverviewItem])
 def get_admin_skilltargets_overview(
     year: Optional[int] = None,
@@ -1997,28 +2087,10 @@ def startup_event():
 
 
 # ─────────────────────────────────────────────
-# Static Files & SPA Fallback
+# API root
 # ─────────────────────────────────────────────
+# The frontend (frontend/) is deployed separately on Vercel; this backend is API-only.
 
-frontend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
-
-if os.path.exists(frontend_path):
-    css_path = os.path.join(frontend_path, "css")
-    if os.path.exists(css_path):
-        app.mount("/css", StaticFiles(directory=css_path), name="css")
-
-    js_path = os.path.join(frontend_path, "js")
-    if os.path.exists(js_path):
-        app.mount("/js", StaticFiles(directory=js_path), name="js")
-
-    @app.get("/logo.png")
-    def get_logo():
-        return FileResponse(os.path.join(frontend_path, "logo.png"))
-
-    @app.get("/")
-    def read_index():
-        return FileResponse(os.path.join(frontend_path, "index.html"))
-else:
-    @app.get("/")
-    def read_index():
-        return {"detail": "Frontend folder not found. Running API-only server."}
+@app.get("/")
+def read_index():
+    return {"detail": "Arohak SkillPulse API — see /docs for the interactive API reference."}

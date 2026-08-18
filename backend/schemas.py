@@ -275,7 +275,33 @@ class SkillTargetResponse(SkillTargetBase):
     year: int
     created_at: datetime
     updated_at: datetime
-    
+
+    class Config:
+        from_attributes = True
+
+
+# ─────────────────────────────────────────────
+# Talent & Activities schemas
+# ─────────────────────────────────────────────
+class TalentBase(BaseModel):
+    category: str = Field(..., pattern="^(Sport|Cultural|Hobby|Other)$")
+    name: str
+    note: Optional[str] = None
+
+class TalentCreate(TalentBase):
+    pass
+
+class TalentUpdate(BaseModel):
+    category: Optional[str] = Field(None, pattern="^(Sport|Cultural|Hobby|Other)$")
+    name: Optional[str] = None
+    note: Optional[str] = None
+
+class TalentResponse(TalentBase):
+    id: int
+    employee_id: str
+    created_at: datetime
+    updated_at: datetime
+
     class Config:
         from_attributes = True
 

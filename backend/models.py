@@ -82,6 +82,7 @@ class Employee(Base):
     schedule = relationship("EmployeeSchedule", back_populates="employee", uselist=False, cascade="all, delete-orphan")
     attendances = relationship("Attendance", back_populates="employee", cascade="all, delete-orphan", order_by="Attendance.date")
     skill_targets = relationship("SkillTarget", back_populates="employee", cascade="all, delete-orphan")
+    talents = relationship("Talent", back_populates="employee", cascade="all, delete-orphan")
     leave_requests = relationship("LeaveRequest", back_populates="employee", cascade="all, delete-orphan")
     timesheet_rows = relationship("TimesheetRow", back_populates="employee", cascade="all, delete-orphan")
     timesheet_statuses = relationship("WeeklyTimesheetStatus", back_populates="employee", cascade="all, delete-orphan")
@@ -145,6 +146,21 @@ class SkillTarget(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     employee = relationship("Employee", back_populates="skill_targets")
+
+
+class Talent(Base):
+    """Self-reported sports/cultural/hobby talents & activities for an employee."""
+    __tablename__ = "talents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    employee_id = Column(String, ForeignKey("employees.employee_id", ondelete="CASCADE"), index=True)
+    category = Column(String, nullable=False)   # "Sport", "Cultural", "Hobby", "Other"
+    name = Column(String, nullable=False)
+    note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    employee = relationship("Employee", back_populates="talents")
 
 
 class LeaveRequest(Base):
