@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { EmployeeDetailsModal } from '@/components/employee-details-modal';
 import { Spinner } from '@/components/spinner';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
@@ -30,12 +30,12 @@ type DirectoryEntry = Employee | EmployeeRestricted;
 export default function DirectoryPage() {
   const { authedFetch } = useAuth();
   const { showToast } = useToast();
+  const router = useRouter();
   const [skill, setSkill] = useState('');
   const [project, setProject] = useState('');
   const [exp, setExp] = useState('');
   const [results, setResults] = useState<DirectoryEntry[] | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   async function runSearch(s: string, p: string, e: string) {
     if (!s.trim() && !p.trim() && !e.trim()) {
@@ -162,7 +162,7 @@ export default function DirectoryPage() {
                 className={empCard}
                 whileHover={{ y: -3 }}
                 transition={{ duration: 0.15 }}
-                onClick={() => setSelectedId(emp.employee_id)}
+                onClick={() => router.push(`/directory/${emp.employee_id}`)}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -208,8 +208,6 @@ export default function DirectoryPage() {
             );
           })}
       </div>
-
-      <EmployeeDetailsModal employeeId={selectedId} onClose={() => setSelectedId(null)} />
     </>
   );
 }

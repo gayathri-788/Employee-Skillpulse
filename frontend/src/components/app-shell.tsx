@@ -22,6 +22,7 @@ const EMPLOYEE_NAV: NavItem[] = [
   { href: '/schedule', icon: 'calendar_month', label: 'Weekly Schedule' },
   { href: '/certskills', icon: 'workspace_premium', label: 'Certifications & Skills' },
   { href: '/skilltargets', icon: 'flag', label: 'Employee Growth Targets' },
+  { href: '/talents', icon: 'sports_soccer', label: 'Talents & Activities' },
   { href: '/timesheet', icon: 'schedule', label: 'Weekly Timesheet' },
 ];
 
