@@ -1,0 +1,84 @@
+Emp ID,Emp  Name,Client,Project Name,Attendnce admin,Timesheet Approver,Project Code,Start Date,End Date
+AT0122,Hari Gopal Konka,Kenvue ,OCA,Venkat,Praveen,KE-APAC-OCA-01,8/15/26,12/31/26
+AT0106,Nikitha Nalamalla,Kenvue ,OCA,Venkat,Praveen,KE-APAC-OCA-01,8/15/26,12/31/26
+AT0114,Sindhu Sri Kongara,Kenvue ,OCA,Venkat,Praveen,KE-APAC-OCA-01,8/15/26,12/31/26
+AT0234,Subba Rao Peyyala ,Kenvue ,BTPi EMEA,Sunita,Praveen,KE-EMEA-BTPi-02,8/15/26,12/31/26
+AT0246,Saharsh Gupta,Cognivance,Cognivance - Drone,Mallikarjuna,srikanth,CO-IN-Drone-01,3/1/26,12/31/26
+AT0157,Lakshmi Prabha,JNJ,Asset Management (AM),Sunita,Praveen,JNJ-NA-AM-01,1/1/26,12/31/26
+AT0156,Harsh Jain,JNJ,Dupay MFT,srideep,Praveen,JNJ-NA-DU-MFT-02,5/1/26,12/31/26
+AT0153,Srideep Kariveda,JNJ,Dupay MFT,Sunita,Praveen,JNJ-NA-DU-MFT-02,5/1/26,12/31/26
+AT0220,Sri Ganesh Sai Gunnam,JNJ,AI,Sunita,Praveen,JNJ-NA-AI-DEV-01,,12/31/26
+AT0050,Neelima Anne,JNJ,MFT,Neelima,Praveen,JNJ-NA-MFT-MBOX-03,,12/31/26
+AT0276,Bhanu Prakash Rayapati,JNJ,MFT MBOX Cloud Migration,Neelima,Praveen,JNJ-NA-CLD-MIG-05,,12/31/26
+AT0125,Laxmi Reddy Reddy,JNJ,MFT,Neelima,Praveen,JNJ-NA-MFT-MBOX-03,,12/31/26
+AT0109,Mahinder Golla,JNJ,MFT J&J Infra,Sunita,Praveen,JNJ-NA-INFRA-04,,12/31/26
+AT0095,Saketha Vijjapu,JNJ,MFT J&J Infra,Sunita,Praveen,JNJ-NA-INFRA-04,,12/31/26
+AT0197,Himani Jain,JNJ,MFT MBOX Cloud Migration,Sunita,Praveen,JNJ-NA-CLD-MIG-05,,12/31/26
+AT0193,Sai Praneeth Jampula,JNJ,MFT MBOX Cloud Migration,Sunita,Praveen,JNJ-NA-CLD-MIG-05,,12/31/26
+AT0031,Aswini Allugunti,JNJ,Planet 9,Sunita,Praveen,JNJ-NA-P9-06,,12/31/26
+AT0014,Teja Naga Suri Nelluri,JNJ,Planet 9,Sunita,Praveen,JNJ-NA-P9-06,,12/31/26
+AT0141,Manjunath TS,JNJ,webMethods MFT platform support ,Sunita,Praveen,JNJ-NA-DU-MFT-02,,12/31/26
+AT0289,Arabandi Rambabu,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0290,Santosh Gopalkrishnan,JNJ,AI,Sunita,Praveen,JNJ-NA-AI-DEV-01,,12/31/26
+AT0194,Mohan Sai Vadde,Kenvue ,BTPi EMEA,Sunita,Praveen,KE-EMEA-BTPi-02,,12/31/26
+AT0147,Sai Vijitha Vendoti,Kenvue ,ASPAC,Venkat,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0131,Kranthi Veer Ande,Kenvue ,ASPAC,Venkat,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0159,Arnab Borah,JNJ,Dupay MFT,Sunita,Praveen,JNJ-NA-DU-MFT-02,,12/31/26
+AT0225,Jaya Shankar Yelubandi,Kenvue ,"AWS Platform , D-Portal",Venkat,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0227,Greeshma Saini Karnati,Kenvue ,NA - EDI (Support),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0242,Nikitha Anumola,Kenvue ,Service Now [APAC},Praveen,Praveen,KE-APAC-CSM-05,,12/31/26
+AT0223,Vijay Durga Reddy,Kenvue ,Service Now [APAC},Praveen,Praveen,KE-APAC-CSM-05,,12/31/26
+AT0081,Jahnavi Reddi Battula,Kenvue ,BMC,Venkat,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0252,Sunil Kumar Sahu,Kenvue ,CA - EDI (Dev),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0176,Tejeswar Tulasi,Kenvue ,CA - EDI (Dev),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0243,Thenmozhi Mohan ,Kenvue ,Cloud Commerce,Sunita,Praveen,KE-APAC-CC-05,,12/31/26
+AT0123,Santhi Lagadapati,Kenvue ,COEAT (Dev),Venkat,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0211,Sai Sathwik Reddy Kareddy,Kenvue ,NA - EDI & Testing Tool (dev &Support),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0198,Koushik Gurrala,Kenvue ,NA - EDI & Testing Tool (Dev),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0165,Harshitha Chowdari,Kenvue ,NA - EDI (Dev & Support),Reshmi,Praveen,KE-NA-EDI-04,,12/31/26
+AT0284,Venkatesh Munukutla,Kenvue ,ASPAC- COEAT & OCA,Sunita,Praveen,KE-APAC-COEAT-03,,12/31/26
+AT0250,Khaja Vali Shaik,Kenvue ,OneS4,Sunita,Praveen,KE-APAC-ONES4-06,,12/31/26
+AT0221,Shashank Mulukala,Kenvue ,Service Now LTAM,Praveen,Praveen,KE-LTAM-SNOW-07,,12/31/26
+AT0216,Soniya Vardhinigannu,Kenvue ,Service Now LTAM,Praveen,Praveen,KE-LTAM-SNOW-07,,12/31/26
+AT0218,Uday Sree Burle,Kenvue ,Service Now LTAM,Praveen,Praveen,KE-LTAM-SNOW-07,,12/31/26
+AT0291,POORNIMA MADHURA,Kenvue ,Scrum,Sunita,Praveen,KE-APAC-SM-08,,12/31/26
+AT0277,Chaitanya Tulasigari,Cognivance,Cognivance - ST,Manikanta,srikanth,CO-IN-ST-02,,12/31/26
+AT0260,Deva Lokesh Neela ,Cognivance,Cognivance - ST,Manikanta,srikanth,CO-IN-ST-02,,12/31/26
+AT0201,Dushyanth Kumar Daggupati,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0248,Lakshmi Kanth Allamsetty,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0267,Manoj Gangavarapu,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0255,Pradeepa Chowdary Yemukapati,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0241,Praneeth Pathuri,JNJ,Dupay MT Runteam,srideep,Praveen,JNJ-NA-DURUN-08,,12/31/26
+AT0265,Surendra Vara Prasad Bapanapalli,Cognivance,Cognivance - Testing,Mallikarjuna,srikanth,CO-IN-TT-05,,12/31/26
+AT0231,Swetha Mocherla,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0214,Venkata Sairama Krishna Gundi,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0269,Ajay Karre,Cognivance,Devops,Mallikarjuna,srikanth,CO-IN-DE-04,,12/31/26
+AT0275,Rusheswar Rao Balla,Cognivance,AI,Mallikarjuna,srikanth,CO-IN-ST-02,,12/31/26
+AT0212,Rohini Vajjgi,Cognivance,HRMS,Mallikarjuna,srikanth,CO-IN-HR-04,,12/31/26
+AT0258,Nishitha Thurpati,Cognivance,Cognivance - ST,Manikanta,srikanth,CO-IN-ST-02,,12/31/26
+AT0278,Sai Harsha Muthyala,Cognivance,Cognivance - ST,Manikanta,srikanth,CO-IN-ST-02,,12/31/26
+AT0270,Deepa Ravuri,Kenvue ,OCA,Venkat,Praveen,KE-APAC-OCA-01,,12/31/26
+AT0183,Buchaiah Chowdary Gollapudi,Cognivance,Cognivance - Crenma,Mallikarjuna,srikanth,CO-IN-CA-03,,12/31/26
+AT0279,Sai Manikanta Telagamsetty,Cognivance,Cognivance - ST,Sunita,srikanth,CO-IN-ST-02,,12/31/26
+AT0215,Manoj Kumar Edupuganti,Cognivance,Content Writer,Mallikarjuna,srikanth,CO-IN-TT-05,,12/31/26
+AT0281,Mallampati Harsha Chaitanya Reddy,Cognivance,Cognivance - Testing,Mallikarjuna,srikanth,CO-IN-TT-05,,12/31/26
+AT0254,Manjula Gogineni,Cognivance,Cognivance - Testing,Mallikarjuna,srikanth,CO-IN-TT-05,,12/31/26
+AT0292,Lakshmi Narayana,Cognivance,AI,Mallikarjuna,srikanth,CO-IN-ST-02,,12/31/26
+AT0297,Amulya Guduri,Cognivance,Cognivance - ST,Manikanta,srikanth,CO-IN-ST-02,,12/31/26
+AT0266,Vyshnavi Suragam,JNJ,MFT,Neelima,Praveen,JNJ-NA-MFT-MBOX-03,,12/31/26
+AT0257,Mahitha Kummeta,JNJ,MFT,Neelima,Praveen,JNJ-NA-MFT-MBOX-03,,12/31/26
+AT0263,Vijay Bhaskar Appana,JNJ,MFT,Neelima,Praveen,JNJ-NA-MFT-MBOX-03,,12/31/26
+AT0256,Lakshmi Tulasi Muvvala,Kenvue ,ASPAC,Venkat,Praveen,KE-APAC-OCA-01,,12/31/26
+AT0232,Prasanth Mocherla,Kenvue ,Service Now [APAC},Praveen,Praveen,KE-APAC-CSM-05,,12/31/26
+AT0196,Dileep Kommineni,Dupay,Dupay MT Runteam,srideep,Praveen,JNJ-NA-DURUN-08,,12/31/26
+AT0190,Nithin Teja Reddy Mavillapally,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0170,Ramya Nalla,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0233,Siddharth Gattu,Dupay,Dupay MT Runteam,srideep,Praveen,JNJ-NA-DURUN-08,,12/31/26
+AT0228,Swetha Bindu Vundavalli,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0245,Sayyad Afreed,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0247,Kishorepastam,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0293,Parava Gayathri Reddy,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0299  ,Balakrishna Peddoju,JNJ,AI,Sunita,Praveen,JNJ-NA-AI-DEV-01,,12/31/26
+AT0298  ,Rahul Manohar Durshinapally ,Bench,bench,Sunita,Sunita,ARK-IN-BEN-01,,12/31/26
+AT0288,Mallikarjuna Rao Manne ,Cognivance,Cognivance - Crenma,Sunita,srikanth,CO-IN-CA-03,,12/31/26
+AT0182,SUPRIYA GADE,Cognivance,Cognivance - ST/ Node. JS Product support,Manikanta,srikanth,CO-IN-ST-02,,

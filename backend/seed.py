@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import random
 import pandas as pd
@@ -36,6 +37,17 @@ def clean_float(val, default=0.0):
         return float(val)
     except ValueError:
         return default
+
+
+def parse_excel_date(val):
+    if val is None or pd.isna(val):
+        return None
+    try:
+        if isinstance(val, datetime):
+            return val.strftime('%Y-%m-%d')
+        return pd.to_datetime(val).strftime('%Y-%m-%d')
+    except Exception:
+        return str(val).strip()
 
 
 SAMPLE_MANAGERS = [
@@ -86,20 +98,26 @@ def seed_db():
         )
         db.add(admin_user)
 
-        # ── Read Excel ───────────────────────────────────────────────
-        excel_path = "Emp Details.xlsx"
-        if not os.path.exists(excel_path):
-            alt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "Emp Details.xlsx")
-            if os.path.exists(alt_path):
-                excel_path = alt_path
+        # ── Read employee data (xlsx or csv) ───────────────────────────
+        repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        candidate_names = ["emp data.csv", "emp data.xlsx", "Emp Details.xlsx"]
+        data_path = None
+        for name in candidate_names:
+            for candidate in (name, os.path.join(repo_root, name)):
+                if os.path.exists(candidate):
+                    data_path = candidate
+                    break
+            if data_path:
+                break
 
-        if not os.path.exists(excel_path):
-            print(f"Excel file not found at: {excel_path}")
+        if not data_path:
+            print(f"No employee data file found (looked for: {', '.join(candidate_names)})")
             db.commit()
             return
 
-        print(f"Reading Excel file: {excel_path}")
-        df = pd.read_excel(excel_path)
+        print(f"Reading employee data file: {data_path}")
+        df = pd.read_csv(data_path) if data_path.lower().endswith(".csv") else pd.read_excel(data_path)
+        df.columns = [re.sub(r'\s+', ' ', str(c)).strip() for c in df.columns]
 
         seen_usernames = {DEFAULT_ADMIN_USERNAME.lower()}
         employees_dict = {}
@@ -125,18 +143,15 @@ def seed_db():
                 db.add(user)
                 seen_usernames.add(username)
 
-            proj_date_val = row.get('Date of Project Assignment')
-            proj_date_str = None
-            if proj_date_val and not pd.isna(proj_date_val):
-                try:
-                    if isinstance(proj_date_val, datetime):
-                        proj_date_str = proj_date_val.strftime('%Y-%m-%d')
-                    else:
-                        proj_date_str = pd.to_datetime(proj_date_val).strftime('%Y-%m-%d')
-                except Exception:
-                    proj_date_str = str(proj_date_val).strip()
+            proj_date_str = parse_excel_date(row.get('Date of Project Assignment') if row.get('Date of Project Assignment') is not None else row.get('Start Date'))
+            proj_end_str = parse_excel_date(row.get('End Date'))
 
+            client = clean_val(row.get('Client'))
             proj_name = clean_val(row.get('Project Name'))
+            if client and proj_name and not proj_name.lower().startswith(client.lower()):
+                proj_name = f"{client} - {proj_name}"
+            else:
+                proj_name = proj_name or client
             cert = clean_val(row.get('Certification'))
             cert_year = clean_val(row.get('Year of Completion'))
 
@@ -180,6 +195,7 @@ def seed_db():
                     expiry_date=None,
                     project_name=proj_name,
                     project_assignment_date=proj_date_str,
+                    project_end_date=proj_end_str,
                     has_laptop=has_lap,
                     laptop_details=lap_details,
                     has_headset=has_head,

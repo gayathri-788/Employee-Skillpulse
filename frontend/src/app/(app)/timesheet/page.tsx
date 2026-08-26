@@ -1,19 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Spinner } from '@/components/spinner';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import {
   TIMESHEET_DAY_KEYS,
   TASK_OPTIONS,
-  isLeaveTaskOption,
   leaveBadgeClasses,
   formatMinutes,
   parseMinutes,
   getWeekLabelText,
   mondayOf,
   currentWeekMonday,
+  toLocalDateStr,
   type TimesheetDayKey,
 } from '@/lib/timesheet';
 import {
@@ -63,21 +63,83 @@ function emptyRow(defaultProject: string): EditRow {
   return { key: newRowKey(), id: null, clientProject: defaultProject, task: '', days };
 }
 
-type DayCellMode = { kind: 'attendance'; label: string } | { kind: 'leave'; label: string } | { kind: 'input' };
+type DayCellMode = { kind: 'attendance'; label: string } | { kind: 'input' };
 
-function dayCellMode(row: EditRow, day: TimesheetDayKey, attendance: Record<string, AttendanceStatus | undefined>): DayCellMode {
+function dayCellMode(day: TimesheetDayKey, attendance: Record<string, AttendanceStatus | undefined>): DayCellMode {
   const status = attendance[day] || 'P';
   if (status === 'Ab') return { kind: 'attendance', label: 'Absent' };
   if (status === 'L') return { kind: 'attendance', label: 'Leave' };
   if (status === 'H') return { kind: 'attendance', label: 'Holiday' };
-  if (isLeaveTaskOption(row.task) && !row.days[day].trim()) return { kind: 'leave', label: row.task };
   return { kind: 'input' };
 }
 
 const tsInputBase =
-  'w-full bg-[rgba(15,23,42,0.45)] border border-white/15 rounded-md px-3 py-1.5 text-white font-medium text-[0.85rem] transition-all duration-150 placeholder:text-white/60 focus:bg-[rgba(15,23,42,0.7)] focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] focus:outline-none disabled:bg-white/5 disabled:border-transparent disabled:text-white/30 disabled:cursor-not-allowed';
+  'w-full bg-[rgba(15,23,42,0.45)] border border-white/15 rounded-md px-3 py-1.5 text-white font-medium text-[0.85rem] transition-all duration-150 placeholder:text-white/60 focus:bg-[rgba(15,23,42,0.7)] focus:border-accent-primary focus:shadow-[0_0_0_2px_rgba(16,185,129,0.2)] focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed';
 const tsDayInput = `${tsInputBase} max-w-[80px] text-center mx-auto block`;
-const tsQuickSelect = 'text-[0.8rem] px-2 py-1 rounded [&_option]:bg-[#17223b] [&_option]:text-white';
+
+function Combobox({
+  value,
+  onChange,
+  options,
+  placeholder,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const filtered = useMemo(
+    () => options.filter((o) => o.toLowerCase().includes(value.trim().toLowerCase())),
+    [options, value]
+  );
+
+  return (
+    <div className="relative" ref={rootRef}>
+      <input
+        type="text"
+        className={tsInputBase}
+        placeholder={placeholder}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+      />
+      {open && filtered.length > 0 && (
+        <ul className="absolute z-20 mt-1 w-full max-h-48 overflow-auto rounded-md border border-white/15 bg-[#17223b] shadow-lg text-[0.8rem]">
+          {filtered.map((opt) => (
+            <li
+              key={opt}
+              className="px-3 py-1.5 text-white/90 hover:bg-white/10 cursor-pointer"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onChange(opt);
+                setOpen(false);
+              }}
+            >
+              {opt}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 const tsRowTotalPill =
   'bg-[rgba(99,102,241,0.15)] text-[#818cf8] px-3 py-1.5 rounded-md font-bold text-[0.85rem] border border-[rgba(99,102,241,0.25)] inline-block min-w-[60px] text-center';
 const tsDeleteBtn =
@@ -101,6 +163,12 @@ export default function TimesheetPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [releasing, setReleasing] = useState(false);
+
+  const clientProjectOptions = useMemo(() => {
+    const opts = new Set<string>(['Bench']);
+    if (profile?.project_name) opts.add(profile.project_name);
+    return Array.from(opts);
+  }, [profile]);
 
   useEffect(() => {
     authedFetch<Employee>('/api/employees/me').then(setProfile).catch(() => {});
@@ -159,7 +227,7 @@ export default function TimesheetPage() {
     for (const row of rows) {
       let rowTotal = 0;
       for (const day of TIMESHEET_DAY_KEYS) {
-        const mode = dayCellMode(row, day, attendance);
+        const mode = dayCellMode(day, attendance);
         const mins = mode.kind === 'input' ? parseMinutes(row.days[day]) : 0;
         rowTotal += mins;
         colTotals[day] += mins;
@@ -220,6 +288,7 @@ export default function TimesheetPage() {
   }
 
   async function handleCopyPrevious() {
+    if (!confirm('This will REPLACE all rows currently in this week with last week\'s structure (hours reset to 0). Continue?')) return;
     try {
       const result = await authedFetch<TimesheetData>(`/api/timesheet/me/copy-previous?week_start=${weekStart}`, { method: 'POST' });
       setData(result);
@@ -328,54 +397,26 @@ export default function TimesheetPage() {
                   rows.map((row) => (
                     <tr key={row.key}>
                       <td className="min-w-[210px]">
-                        <div className="flex flex-col gap-1.5">
-                          <input
-                            type="text"
-                            className={tsInputBase}
-                            placeholder="Type or edit project name..."
-                            value={row.clientProject}
-                            disabled={!canEdit}
-                            onChange={(e) => updateRow(row.key, { clientProject: e.target.value })}
-                          />
-                          <select
-                            className={tsQuickSelect}
-                            disabled={!canEdit}
-                            value=""
-                            onChange={(e) => e.target.value && updateRow(row.key, { clientProject: e.target.value })}
-                          >
-                            <option value="">-- Quick Select --</option>
-                            <option value="Bench">Bench</option>
-                          </select>
-                        </div>
+                        <Combobox
+                          placeholder="Type or select project..."
+                          value={row.clientProject}
+                          disabled={!canEdit}
+                          options={clientProjectOptions}
+                          onChange={(v) => updateRow(row.key, { clientProject: v })}
+                        />
                       </td>
                       <td className="min-w-[210px]">
-                        <div className="flex flex-col gap-1.5">
-                          <input
-                            type="text"
-                            className={tsInputBase}
-                            placeholder="Type task or role description..."
-                            value={row.task}
-                            disabled={!canEdit}
-                            onChange={(e) => updateRow(row.key, { task: e.target.value })}
-                          />
-                          <select
-                            className={tsQuickSelect}
-                            disabled={!canEdit}
-                            value=""
-                            onChange={(e) => e.target.value && updateRow(row.key, { task: e.target.value })}
-                          >
-                            <option value="">-- Select Leave / Activity --</option>
-                            {TASK_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>
-                                {opt}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                        <Combobox
+                          placeholder="Type task description..."
+                          value={row.task}
+                          disabled={!canEdit}
+                          options={TASK_OPTIONS}
+                          onChange={(v) => updateRow(row.key, { task: v })}
+                        />
                       </td>
                       {TIMESHEET_DAY_KEYS.map((day) => {
-                        const mode = dayCellMode(row, day, attendance);
-                        if (mode.kind === 'attendance' || mode.kind === 'leave') {
+                        const mode = dayCellMode(day, attendance);
+                        if (mode.kind === 'attendance') {
                           return (
                             <td key={day} className="text-center">
                               <div className="flex justify-center items-center h-8">
@@ -481,5 +522,5 @@ export default function TimesheetPage() {
 function shiftDate(dateStr: string, days: number): string {
   const d = new Date(`${dateStr}T00:00:00`);
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return toLocalDateStr(d);
 }

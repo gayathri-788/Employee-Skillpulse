@@ -28,3 +28,11 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 SMTP_SENDER = os.getenv("SMTP_SENDER", "noreply@arohak-skillpulse.com")
 SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "True").lower() == "true"
 
+# eTimeTrackLite (punch in/out integration) — from the biometric device server
+ETIMETRACK_BASE_URL = os.getenv("ETIMETRACK_BASE_URL", "")  # e.g. http://<server-ip>:3366/WebAPIService.asmx
+ETIMETRACK_USERNAME = os.getenv("ETIMETRACK_USERNAME", "")
+ETIMETRACK_PASSWORD = os.getenv("ETIMETRACK_PASSWORD", "")
+ETIMETRACK_DEVICE_SERIALS = [
+    s.strip() for s in os.getenv("ETIMETRACK_DEVICE_SERIALS", "").split(",") if s.strip()
+]
+

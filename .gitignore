@@ -24,6 +24,8 @@ __pycache__/
 *.egg
 MANIFEST
 
+.env
+
 # Virtual environments
 venv/
 .venv/

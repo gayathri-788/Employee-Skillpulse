@@ -19,6 +19,7 @@ interface NavItem {
 const EMPLOYEE_NAV: NavItem[] = [
   { href: '/directory', icon: 'people_outline', label: 'Employee Directory' },
   { href: '/attendance', icon: 'event_available', label: 'Attendance' },
+  { href: '/leaves', icon: 'beach_access', label: 'Leave Requests' },
   { href: '/schedule', icon: 'calendar_month', label: 'Weekly Schedule' },
   { href: '/certskills', icon: 'workspace_premium', label: 'Certifications & Skills' },
   { href: '/skilltargets', icon: 'flag', label: 'Employee Growth Targets' },
@@ -30,6 +31,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/admin/dashboard', icon: 'dashboard', label: 'Dashboard' },
   { href: '/admin/directory', icon: 'badge', label: 'Employees Directory' },
   { href: '/admin/attendance', icon: 'event_note', label: 'Attendance Tracker' },
+  { href: '/admin/leaves', icon: 'fact_check', label: 'Leave Requests' },
   { href: '/admin/assets', icon: 'devices', label: 'Office Assets' },
   { href: '/admin/skilltargets', icon: 'track_changes', label: 'Employee Growth Targets' },
   { href: '/admin/timesheets', icon: 'rule', label: 'Timesheet Approvals' },

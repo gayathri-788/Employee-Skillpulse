@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { useApiData } from '@/lib/use-api-data';
 import { formatDate } from '@/lib/format';
-import { TIMESHEET_DAY_KEYS, formatMinutes, isLeaveTaskOption, leaveBadgeClasses } from '@/lib/timesheet';
+import { TIMESHEET_DAY_KEYS, formatMinutes, leaveBadgeClasses } from '@/lib/timesheet';
 import { currentWeekMonday } from '@/lib/timesheet';
 import {
   adminTable,
@@ -290,20 +290,6 @@ export default function AdminTimesheetsPage() {
                                     <td key={day} className="text-center">
                                       <span className={cx('inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded text-[0.72rem] border', leaveBadgeClasses(label))}>
                                         {label}
-                                      </span>
-                                    </td>
-                                  );
-                                }
-                                if (isLeaveTaskOption(r.task || '') && mins === 0) {
-                                  return (
-                                    <td key={day} className="text-center">
-                                      <span
-                                        className={cx(
-                                          'inline-flex items-center whitespace-nowrap px-3 py-1.5 rounded text-[0.72rem] border',
-                                          leaveBadgeClasses(r.task || ''),
-                                        )}
-                                      >
-                                        {r.task}
                                       </span>
                                     </td>
                                   );

@@ -1,15 +1,7 @@
 export const TIMESHEET_DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
 export type TimesheetDayKey = (typeof TIMESHEET_DAY_KEYS)[number];
 
-export const TASK_OPTIONS = ['Sick Leave', 'Loss of Pay', 'Comp-off', 'Privilege Leave', 'WFH', 'Bereavement', 'Marriage Leave'];
-
-const LEAVE_KEYWORDS = ['sick leave', 'loss of pay', 'comp-off', 'privilege leave', 'wfh', 'bereavement', 'marriage leave', 'leave', 'absent', 'holiday'];
-
-export function isLeaveTaskOption(taskStr: string): boolean {
-  if (!taskStr) return false;
-  const str = taskStr.trim().toLowerCase();
-  return LEAVE_KEYWORDS.some((k) => str.includes(k));
-}
+export const TASK_OPTIONS: string[] = [];
 
 /** Tailwind classes for a leave/absence/holiday pill in a timesheet day cell. */
 export function leaveBadgeClasses(label: string): string {
@@ -49,14 +41,22 @@ export function getWeekLabelText(weekStartStr: string): string {
   })}`;
 }
 
+/** Formats a Date as a YYYY-MM-DD string using its local calendar date (not UTC — toISOString() shifts the date in non-UTC timezones). */
+export function toLocalDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 export function mondayOf(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00`);
   const day = d.getDay();
   const diff = d.getDate() - (day === 0 ? 6 : day - 1);
   d.setDate(diff);
-  return d.toISOString().split('T')[0];
+  return toLocalDateStr(d);
 }
 
 export function currentWeekMonday(): string {
-  return mondayOf(new Date().toISOString().split('T')[0]);
+  return mondayOf(toLocalDateStr(new Date()));
 }
