@@ -37,6 +37,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: '/admin/timesheets', icon: 'rule', label: 'Timesheet Approvals' },
   { href: '/admin/emp-timesheets', icon: 'view_timeline', label: 'Employee Timesheets' },
   { href: '/admin/projects', icon: 'account_tree', label: 'Projects & Teams' },
+  { href: '/admin/etimetrack', icon: 'wifi_tethering', label: 'eTimeTrack Test' },
 ];
 
 function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {

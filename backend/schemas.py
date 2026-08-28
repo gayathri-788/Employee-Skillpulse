@@ -397,5 +397,15 @@ class AdminSkillTargetOverviewItem(BaseModel):
     targets: List[SkillTargetResponse] = []
 
 
+# ─────────────────────────────────────────────
+# eTimeTrack integration test
+# ─────────────────────────────────────────────
+class EtimetrackTestRequest(BaseModel):
+    base_url: str
+    username: Optional[str] = None
+    password: Optional[str] = None
+    device_serial: Optional[str] = None
+
+
 
 

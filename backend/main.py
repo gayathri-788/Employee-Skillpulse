@@ -26,7 +26,7 @@ try:
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
-        TimesheetReviewRequest, AdminTimesheetListItem
+        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest
     )
     from auth import (
         verify_password, get_password_hash, create_access_token,
@@ -47,7 +47,7 @@ except ModuleNotFoundError:
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
-        TimesheetReviewRequest, AdminTimesheetListItem
+        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest
     )
     from backend.auth import (
         verify_password, get_password_hash, create_access_token,
@@ -2084,6 +2084,68 @@ def check_and_send_scheduled_reminders():
 def startup_event():
     # Start the automated reminder background thread
     threading.Thread(target=check_and_send_scheduled_reminders, daemon=True).start()
+
+
+# ─────────────────────────────────────────────
+# eTimeTrack integration test
+# ─────────────────────────────────────────────
+@app.post("/api/admin/etimetrack/test")
+def test_etimetrack_connection(
+    req: EtimetrackTestRequest,
+    current_user: User = Depends(require_admin),
+):
+    import socket
+    import urllib.request
+    import urllib.error
+    from urllib.parse import urlparse
+
+    steps = []
+    parsed = urlparse(req.base_url)
+    host = parsed.hostname
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+
+    if not host:
+        return {"success": False, "steps": [], "message": "Invalid Base URL — couldn't parse a host from it."}
+
+    # Step 1: raw TCP reachability
+    try:
+        with socket.create_connection((host, port), timeout=5):
+            steps.append({"step": "TCP connect", "ok": True, "detail": f"Connected to {host}:{port}"})
+    except ConnectionRefusedError:
+        steps.append({"step": "TCP connect", "ok": False, "detail": f"Connection refused on {host}:{port} — nothing is listening there."})
+        return {"success": False, "steps": steps, "message": "Port refused the connection. Check the port number / that the service is running."}
+    except (socket.timeout, TimeoutError):
+        steps.append({"step": "TCP connect", "ok": False, "detail": f"Timed out connecting to {host}:{port} — likely blocked by a firewall or wrong host."})
+        return {"success": False, "steps": steps, "message": "Connection timed out. Check the IP is correct and your machine is allowed through the firewall."}
+    except OSError as e:
+        steps.append({"step": "TCP connect", "ok": False, "detail": str(e)})
+        return {"success": False, "steps": steps, "message": f"Could not reach {host}:{port} — {e}"}
+
+    # Step 2: HTTP GET on the .asmx endpoint
+    try:
+        with urllib.request.urlopen(req.base_url, timeout=8) as resp:
+            body = resp.read(500).decode(errors="replace")
+            steps.append({"step": "HTTP GET", "ok": True, "detail": f"HTTP {resp.status}"})
+            looks_like_soap = "asmx" in body.lower() or "webservice" in body.lower() or "wsdl" in body.lower()
+            return {
+                "success": True,
+                "steps": steps,
+                "message": "Reachable! The WebAPIService endpoint responded." if looks_like_soap else "Reachable, but the response doesn't look like an ASMX/SOAP service — double check the URL.",
+            }
+    except urllib.error.HTTPError as e:
+        steps.append({"step": "HTTP GET", "ok": True, "detail": f"HTTP {e.code}"})
+        return {"success": True, "steps": steps, "message": f"Server responded (HTTP {e.code}). Port is reachable and speaking HTTP."}
+    except (ConnectionResetError, urllib.error.URLError) as e:
+        detail = str(getattr(e, "reason", e))
+        steps.append({"step": "HTTP GET", "ok": False, "detail": f"Connection reset / {detail}"})
+        return {
+            "success": False,
+            "steps": steps,
+            "message": "Port accepted the TCP connection but reset on the HTTP request — this usually means it's not actually an HTTP/SOAP service on this port (e.g. it's the device's raw punch-data port, not the WebAPIService).",
+        }
+    except socket.timeout:
+        steps.append({"step": "HTTP GET", "ok": False, "detail": "Timed out waiting for HTTP response"})
+        return {"success": False, "steps": steps, "message": "TCP connected but the HTTP request never got a response."}
 
 
 # ─────────────────────────────────────────────
