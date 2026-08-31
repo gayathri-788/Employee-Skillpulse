@@ -1,7 +1,17 @@
 export const TIMESHEET_DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
 export type TimesheetDayKey = (typeof TIMESHEET_DAY_KEYS)[number];
 
-export const TASK_OPTIONS: string[] = [];
+export const TASK_OPTIONS: string[] = [
+  'Development',
+  'Testing',
+  'Code Review',
+  'Sprint Planning',
+  'Bug Fixing',
+  'Documentation',
+  'Meetings',
+  'Training',
+  'Sick Leave',
+];
 
 /** Tailwind classes for a leave/absence/holiday pill in a timesheet day cell. */
 export function leaveBadgeClasses(label: string): string {

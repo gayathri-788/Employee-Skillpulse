@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Spinner } from '@/components/spinner';
 import { useApiData } from '@/lib/use-api-data';
 import { targetBadgeClasses } from '@/lib/status';
@@ -213,8 +213,8 @@ export default function AdminSkillTargetsPage() {
                 filtered.map((item) => {
                   const isOpen = expanded.has(item.employee_id);
                   return (
-                    <>
-                      <tr key={item.employee_id}>
+                    <Fragment key={item.employee_id}>
+                      <tr>
                         <td>
                           <strong>{item.employee_id.toUpperCase()}</strong>
                         </td>
@@ -284,7 +284,7 @@ export default function AdminSkillTargetsPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
             </tbody>

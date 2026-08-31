@@ -61,7 +61,10 @@ class Employee(Base):
     laptop_details = Column(String, nullable=True)
     has_headset = Column(String, default="No")
     headset_details = Column(String, nullable=True)
-    
+
+    # Preferences
+    email_notifications_enabled = Column(String, default="Yes")
+
     # Ratings and Score
     work_exp_skills_rating = Column(Float, default=0.0)
     overall_rating = Column(Float, default=0.0)

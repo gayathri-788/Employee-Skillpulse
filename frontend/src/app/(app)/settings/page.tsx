@@ -5,6 +5,7 @@ import { Switch } from '@/components/switch';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/lib/toast-context';
 import { applyTheme, getStoredTheme, type Theme } from '@/lib/theme';
+import type { Employee } from '@/lib/types';
 import {
   btnPrimary,
   btnSecondary,
@@ -24,7 +25,7 @@ import {
 const themeToggleActive = '!bg-accent-secondary !text-[#0a0a0a] !border-accent-secondary shadow-[0_4px_12px_rgba(245,158,11,0.3)]';
 
 export default function SettingsPage() {
-  const { authedFetch } = useAuth();
+  const { authedFetch, role } = useAuth();
   const { showToast } = useToast();
   const [theme, setThemeState] = useState<Theme>('dark');
   const [notifications, setNotifications] = useState(true);
@@ -33,13 +34,20 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Hydrate from localStorage on mount (client-only external store).
+  // Hydrate theme from localStorage on mount (client-only external store).
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setThemeState(getStoredTheme());
-    setNotifications(localStorage.getItem('notificationsEnabled') !== 'false');
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  useEffect(() => {
+    if (role !== 'employee') return;
+    authedFetch<Employee>('/api/employees/me')
+      .then((emp) => setNotifications(emp.email_notifications_enabled !== 'No'))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount
+  }, []);
 
   function chooseTheme(next: Theme) {
     applyTheme(next);
@@ -47,10 +55,18 @@ export default function SettingsPage() {
     showToast(`${next === 'dark' ? 'Dark' : 'Light'} mode activated`, 'success');
   }
 
-  function toggleNotifications(checked: boolean) {
+  async function toggleNotifications(checked: boolean) {
     setNotifications(checked);
-    localStorage.setItem('notificationsEnabled', String(checked));
-    showToast(`Email notifications ${checked ? 'enabled' : 'disabled'}`, 'info');
+    try {
+      await authedFetch('/api/employees/me/notifications', {
+        method: 'PUT',
+        body: JSON.stringify({ enabled: checked }),
+      });
+      showToast(`Email notifications ${checked ? 'enabled' : 'disabled'}`, 'info');
+    } catch (err) {
+      setNotifications(!checked);
+      showToast(err instanceof Error ? err.message : 'Failed to update notification preference', 'error');
+    }
   }
 
   async function handlePasswordChange(e: FormEvent) {
@@ -85,23 +101,25 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className={panel}>
-        <div className={panelHeader}>
-          <span className="material-icons-round">notifications</span>
-          <h2>Notification Preferences</h2>
-        </div>
-        <div className={panelBody}>
-          <div className={cx(formGroup, '!mb-0 flex items-center gap-3')}>
-            <Switch checked={notifications} onChange={() => toggleNotifications(!notifications)} />
-            <div>
-              <h3 className="text-[0.95rem] mb-0.5 text-text-primary">Enable Email Notifications</h3>
-              <p className="text-[0.8rem] text-text-muted">
-                Receive automatic alerts on portal updates and 6-month profile refresh periods.
-              </p>
+      {role === 'employee' && (
+        <div className={panel}>
+          <div className={panelHeader}>
+            <span className="material-icons-round">notifications</span>
+            <h2>Notification Preferences</h2>
+          </div>
+          <div className={panelBody}>
+            <div className={cx(formGroup, '!mb-0 flex items-center gap-3')}>
+              <Switch checked={notifications} onChange={() => toggleNotifications(!notifications)} />
+              <div>
+                <h3 className="text-[0.95rem] mb-0.5 text-text-primary">Enable Email Notifications</h3>
+                <p className="text-[0.8rem] text-text-muted">
+                  Receive automatic alerts on portal updates and 6-month profile refresh periods.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className={panel}>
         <div className={panelHeader}>

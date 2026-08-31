@@ -154,8 +154,8 @@ export default function OfficeAssetsPage() {
               <tr>
                 <th>Emp ID</th>
                 <th>Employee Name</th>
-                <th>Laptop ID</th>
-                <th>Headset ID</th>
+                <th>Laptop</th>
+                <th>Headset</th>
                 <th>Action</th>
               </tr>
             </thead>

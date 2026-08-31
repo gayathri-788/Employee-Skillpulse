@@ -30,6 +30,8 @@ export interface Employee {
   has_headset?: string | null;
   headset_details?: string | null;
 
+  email_notifications_enabled?: string | null;
+
   work_exp_skills_rating?: number | null;
   overall_rating?: number | null;
   resume_path?: string | null;

@@ -51,10 +51,15 @@ class EmployeeBase(BaseModel):
     laptop_details: Optional[str] = None
     has_headset: Optional[str] = "No"
     headset_details: Optional[str] = None
-    
+
+    email_notifications_enabled: Optional[str] = "Yes"
+
     work_exp_skills_rating: Optional[float] = 0.0
     overall_rating: Optional[float] = 0.0
     resume_path: Optional[str] = None
+
+class NotificationPreferenceUpdate(BaseModel):
+    enabled: bool
 
 class EmployeeUpdate(BaseModel):
     name: str

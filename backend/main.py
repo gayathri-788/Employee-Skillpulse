@@ -26,7 +26,8 @@ try:
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
-        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest
+        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest,
+        NotificationPreferenceUpdate
     )
     from auth import (
         verify_password, get_password_hash, create_access_token,
@@ -47,7 +48,8 @@ except ModuleNotFoundError:
         LeaveRequestCreate, LeaveRequestResponse, LeaveRequestUpdateStatus,
         TimesheetRowSchema, TimesheetSaveRequest, TimesheetResponse,
         AssetUpdate, CustomResumeRequest, AdminSkillTargetOverviewItem,
-        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest
+        TimesheetReviewRequest, AdminTimesheetListItem, EtimetrackTestRequest,
+        NotificationPreferenceUpdate
     )
     from backend.auth import (
         verify_password, get_password_hash, create_access_token,
@@ -130,6 +132,16 @@ with engine.connect() as conn:
             print("Successfully added headset_details column to employees table.")
         except Exception as e:
             print(f"Error migrating database (adding headset_details): {e}")
+
+    try:
+        conn.execute(text("SELECT email_notifications_enabled FROM employees LIMIT 1"))
+    except Exception:
+        try:
+            conn.execute(text("ALTER TABLE employees ADD COLUMN email_notifications_enabled TEXT DEFAULT 'Yes'"))
+            conn.commit()
+            print("Successfully added email_notifications_enabled column to employees table.")
+        except Exception as e:
+            print(f"Error migrating database (adding email_notifications_enabled): {e}")
 
 # Automatic database seeding check (if database is empty on server startup)
 try:
@@ -449,6 +461,23 @@ def get_my_profile(current_user: User = Depends(get_current_user), db: Session =
         raise HTTPException(status_code=404, detail="Employee profile not found")
     compute_employee_experience(employee, db)
     employee.score = calculate_current_score(employee)
+    return employee
+
+
+@app.put("/api/employees/me/notifications", response_model=EmployeeResponse)
+def update_my_notification_preference(
+    data: NotificationPreferenceUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user.role != "employee":
+        raise HTTPException(status_code=403, detail="Admins do not have an employee profile.")
+    employee = db.query(Employee).filter(Employee.username == current_user.username).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee profile not found")
+    employee.email_notifications_enabled = "Yes" if data.enabled else "No"
+    db.commit()
+    db.refresh(employee)
     return employee
 
 
@@ -2012,12 +2041,15 @@ def send_profile_update_reminders(
     
     emails_sent_count = 0
     for emp in employees:
+        if emp.email_notifications_enabled == "No":
+            continue
+
         last_update = emp.last_skill_update or emp.last_updated or now
         if isinstance(last_update, datetime.date) and not isinstance(last_update, datetime.datetime):
             last_update = datetime.datetime.combine(last_update, datetime.time.min)
-            
+
         days_since_update = (now - last_update).days
-        
+
         # If overdue (more than 180 days)
         if days_since_update >= 180:
             # Check if reminder has not been sent, or was sent more than 180 days ago
@@ -2029,10 +2061,10 @@ def send_profile_update_reminders(
                 if success:
                     emp.last_reminder_sent = now
                     emails_sent_count += 1
-                    
+
     if emails_sent_count > 0:
         db.commit()
-        
+
     return {"detail": f"Sent {emails_sent_count} reminder emails.", "emails_sent": emails_sent_count}
 
 
@@ -2050,6 +2082,9 @@ def check_and_send_scheduled_reminders():
             
             emails_sent_count = 0
             for emp in employees:
+                if emp.email_notifications_enabled == "No":
+                    continue
+
                 last_update = emp.last_skill_update or emp.last_updated or now
                 if isinstance(last_update, datetime.date) and not isinstance(last_update, datetime.datetime):
                     last_update = datetime.datetime.combine(last_update, datetime.time.min)
