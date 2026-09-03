@@ -27,6 +27,7 @@ Employee_details/
 │   ├── auth.py            # JWT token creation and direct bcrypt hashing utilities
 │   ├── seed.py            # Seed script parsing 'Emp Details.xlsx' to sqlite
 │   ├── config.py          # Application configuration settings
+│   ├── database.db        # Generated SQLite database file (created by seed.py)
 │   ├── pyproject.toml     # Project metadata & dependencies (uv)
 │   └── uv.lock            # Locked dependency versions (uv)
 │
@@ -37,7 +38,6 @@ Employee_details/
 │   └── public/             # Static assets (logo, favicon)
 │
 ├── .gitignore             # Configured to ignore virtual environments, databases, and caches
-├── database.db            # Generated SQLite database file (created by seed.py)
 └── Emp Details.xlsx       # Source Excel sheet for seeding profiles
 ```
 
@@ -45,27 +45,28 @@ Employee_details/
 
 ## 🚀 Setup & Execution Guide
 
-Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) installed. The uv project (`pyproject.toml`/`uv.lock`/`.venv`) lives in `backend/`, but every command below is run **from the repository root** using `--project backend` — that keeps `database.db` and `Emp Details.xlsx` in the same place they've always been.
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/) installed. The uv project (`pyproject.toml`/`uv.lock`/`.venv`) lives in `backend/`, and every command below is run **from `backend/`** — that's where `database.db` lives (`DATABASE_URL` in `config.py` is a path relative to the process's working directory, so running from anywhere else creates/reads a different `database.db` file).
 
 ### 1. Install Dependencies
 
 ```bash
-uv sync --project backend
+cd backend
+uv sync
 ```
 
 ### 2. Initialize and Seed the Database
 
-Seed the SQLite database using the spreadsheet data from `Emp Details.xlsx`:
+Seed the SQLite database using the spreadsheet data from `../Emp Details.xlsx`:
 ```bash
-uv run --project backend python backend/seed.py
+uv run python seed.py
 ```
-*Note: This creates/overwrites `database.db` and populates it with user accounts (password: `Password@123` by default) and an administrator account.*
+*Note: This creates/overwrites `backend/database.db` and populates it with user accounts (password: `Password@123` by default) and an administrator account.*
 
 ### 3. Run the Backend Server
 
 Start the development server with hot-reloading using `uvicorn`:
 ```bash
-uv run --project backend uvicorn backend.main:app --reload
+uv run uvicorn main:app --reload
 ```
 
 The API will be served at **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)** (interactive docs at `/docs`).
